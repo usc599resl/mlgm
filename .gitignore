@@ -1,0 +1,8 @@
+# Byte-compiled / optimized
+__pycache__/
+
+# Model parameters and data
+data/
+
+# Text Editors
+*.swp

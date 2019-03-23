@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import singledispatch
 import os
 
 import tensorflow as tf
@@ -100,7 +101,7 @@ class Model:
 
     def compute_params_and_grads(self, x, y):
         feed_dict = {self._x: x, self._y: y}
-        return self._sess.run([self._params, self._grads], feed_dict=feed_dict)
+        return self._sess.run(self._loss_out, feed_dict=feed_dict)
 
     def optimize(self, x, y):
         feed_dict = {self._x: x, self._y: y}

@@ -9,10 +9,11 @@ from mlgm.model import Model
 
 
 def main():
+    known_digits = list(range(7))
     tasks = [
-        MnistSampler([3, 2, 7], batch_size=10),
-        MnistSampler([1, 4, 8], batch_size=10),
-        MnistSampler([5, 6, 9], batch_size=10)
+        MnistSampler(known_digits + [7], batch_size=10),
+        MnistSampler(known_digits + [8], batch_size=10),
+        MnistSampler(known_digits + [9], batch_size=10)
     ]
     with tf.Session() as sess:
         model = Model([
@@ -22,12 +23,17 @@ def main():
             layers.Dense(units=10, activation=tf.nn.softmax)
         ], {
             'shape': (None, 28, 28),
-            'dtype': 'float32'
+            'dtype': 'float32',
+            'name': 'Input'
         }, {
             'shape': (None, ),
-            'dtype': 'int64'
+            'dtype': 'int64',
+            'name': 'Label'
         }, sess)
+        # import pdb
+        # pdb.set_trace()
         maml = Maml(model, tasks)
+        # model.restore_model("data/model_12_44_03_20_19/model")
         maml.train(sess, n_itr=3)
 
 

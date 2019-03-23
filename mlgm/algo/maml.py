@@ -15,10 +15,12 @@ class Maml:
     def __init__(self,
                  model,
                  tasks,
+                 num_updates=1,
                  alpha=1.0,
                  beta=1.0):
         self._model = model
         self._beta = beta
+        self._num_updates = num_updates
         self._alpha = alpha
         self._tasks = tasks
 
@@ -28,16 +30,41 @@ class Maml:
             self._model.restore_model(restore_model_path)
         done = False
         for _ in range(n_itr):
-            theta = None
-            theta_prime = []
+            weights = None
+            weights_prime = []
+            losses_b = []
             for t_i in self._tasks:
-                t_i_x, t_i_y, _ = t_i.sample()
-                theta, grads = self._model.compute_params_and_grads(
-                    t_i_x, t_i_y)
-                theta_prime.append({
-                    x: theta[x] - self._alpha * grads[x]
-                    for x in theta if x in grads
+                input_a, label_a, _ = t_i.sample()
+                input_b, label_b, _ = t_i.sample()
+                # This is self.total_loss1 in L81 of
+                # https://github.com/cbfinn/maml/blob/master/maml.py
+                loss_a = self._model.compute_loss(input_a, label_a)
+                import pdb
+                pdb.set_trace()
+                weights, grads = self._model.compute_params_and_grads(loss_a)
+                fast_weights.append({
+                    x: weights[x] - self._alpha * grads[x]
+                    for x in weights if x in grads
                 })
+                self._model.assign_model_params(fast_weights)
+                losses_b.append(self._model.compute_loss(input_b, label_b))
+
+                for i in range(num_updates - 1):
+                    loss_a = self._model.compute_loss(input_a, label_a)
+                    weights, grads = self._model.compute_params_and_grads(
+                            loss_a)
+                    fast_weights.append({
+                        x: weights[x] - self._alpha * grads[x]
+                        for x in weights if x in grads
+                    })
+                    self._model.assign_model_params(fast_weights)
+                    losses_b.append(self._model.compute_loss(input_b, label_b))
+
+                total_losses2 = [tf.reduce_mean(loss_b) for loss_b in losses_b]
+                weights, grads = self.compute_params_and_grads(total_losses2[
+                    num_updates - 1])
+                # Clip gradients
+                np.clip()
 
             sum_grads = None
             for t_i, theta_i in zip(self._tasks, theta_prime):

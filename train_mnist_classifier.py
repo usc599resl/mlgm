@@ -19,6 +19,7 @@ with tf.Session() as sess:
         'shape': (None, ),
         'dtype': 'int64'
     }, sess)
+    model.build()
     # Only learn to classify digits from 0 to 6, so MAML can learn 7, 8 and 9
     # as tasks
     sampler = MnistSampler(training_digits=list(range(7)), batch_size=100)

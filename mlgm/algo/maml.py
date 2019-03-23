@@ -23,6 +23,45 @@ class Maml:
         self._num_updates = num_updates
         self._alpha = alpha
         self._tasks = tasks
+        self._build()
+
+    def _build(self):
+        graph = tf.Graph()
+        losses_b = []
+        with graph.as_default():
+            # Inputs
+            input_a = self._tasks[0].build_input_placeholder(name="input_a")
+            label_a = self._tasks[0].build_label_placeholder(name="label_a",
+                    dtype=tf.dtypes.int32)
+            input_b = self._tasks[0].build_input_placeholder(name="input_b")
+            label_b = self._tasks[0].build_label_placeholder(name="label_b",
+                    dtype=tf.dtypes.int32)
+            alpha = tf.constant(self._alpha, name="alpha", dtype=input_a.dtype)
+            # We build the model here to instantiate the weights of the layers
+            self._model.build_forward_pass(input_a)
+
+
+            for i in range(self._num_updates):
+                losses_b.append(self._build_update(input_a, label_a, input_b,
+                    label_b, alpha))
+        writer = tf.summary.FileWriter(logdir='data/graphs', graph=graph)
+        writer.flush()
+
+    def _build_update(self, input_a, label_a, input_b, label_b, alpha):
+        values=[input_a, label_a, input_b, label_b, alpha]
+        loss_b = None
+        with tf.variable_scope("update", values=values):
+            output_a = self._model.build_forward_pass(input_a)
+            loss_a = self._model.build_loss(label_a, output_a)
+            grads, weights = self._model.build_compute_gradients(loss_a)
+            with tf.variable_scope("fast_weights", values=[weights, grads]):
+                fast_weights = {
+                        w.name: w - alpha * g for w, g in zip(weights, grads)
+                }
+            self._model.assign_model_params(fast_weights)
+            output_b = self._model.build_forward_pass(input_b)
+            loss_b = self._model.build_loss(label_b, output_b)
+        return loss_b
 
     def train(self, sess, n_itr, restore_model_path=None):
         sess.run(tf.global_variables_initializer())

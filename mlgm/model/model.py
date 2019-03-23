@@ -38,13 +38,13 @@ class Model:
         self._weights_sym = []
 
     def build(self):
-        self._build_model()
-        self._build_loss()
-        self._build_compute_gradients(self._loss_sym)
-        self._build_apply_gradients(self._gradients_sym)
-        self._build_accuracy()
+        self.build_model()
+        self.build_loss()
+        self.build_compute_gradients(self._loss_sym)
+        self.build_apply_gradients(self._gradients_sym)
+        self.build_accuracy()
 
-    def _build_model(self):
+    def build_model(self):
         # Model input/output
         self._x = tf.placeholder(**self._param_in)
         self._y = tf.placeholder(**self._param_out)
@@ -62,11 +62,11 @@ class Model:
         ]
         self._saver = tf.train.Saver(var_list)
 
-    def _build_loss(self):
+    def build_loss(self):
         self._loss_sym = self._loss_fn(self._y, self._out)
         return self._loss_sym
 
-    def _build_compute_gradients(self, loss_sym):
+    def build_compute_gradients(self, loss_sym):
         self._optimizer = self._optimizer_cls(self._learning_rate)
         grad_var = self._optimizer.compute_gradients(loss_sym)
 
@@ -80,11 +80,11 @@ class Model:
             self._params.update({var.name: var})
             self._weights_sym.append(var)
 
-    def _build_apply_gradients(self, gradients_sym):
+    def build_apply_gradients(self, gradients_sym):
         grad_var = [(g, w) for g, w in  zip(gradients_sym, self._weights_sym)]
         self._optimize = self._optimizer.apply_gradients(grad_var)
 
-    def _build_accuracy(self):
+    def build_accuracy(self):
         # Calculate accuracy
         y_pred = tf.math.argmax(self._out, axis=1)
         self._acc = tf.reduce_mean(

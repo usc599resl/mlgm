@@ -11,9 +11,9 @@ from mlgm.model import Model
 def main():
     known_digits = list(range(7))
     tasks = [
-        MnistSampler(known_digits + [7], batch_size=10),
-        MnistSampler(known_digits + [8], batch_size=10),
-        MnistSampler(known_digits + [9], batch_size=10)
+        MnistSampler(known_digits + [7], batch_size=200),
+        # MnistSampler(known_digits + [8], batch_size=10),
+        # MnistSampler(known_digits + [9], batch_size=10)
     ]
     with tf.Session() as sess:
         model = Model([
@@ -30,11 +30,10 @@ def main():
             'dtype': 'int64',
             'name': 'Label'
         }, sess)
-        # import pdb
-        # pdb.set_trace()
-        maml = Maml(model, tasks)
+        maml = Maml(
+            model, tasks, sess, pre_train_iterations=5, metatrain_iterations=0)
         # model.restore_model("data/model_12_44_03_20_19/model")
-        maml.train(sess, n_itr=3)
+        maml.train()
 
 
 if __name__ == "__main__":

@@ -44,14 +44,15 @@ class Model:
         self._out = self.build_forward_pass(self._x)
         self._loss_sym = self.build_loss(self._y, self._out)
         self._gradients_sym, self._weights_sym = self.build_compute_gradients(
-                self._loss_sym)
+            self._loss_sym)
         self.build_apply_gradients(self._gradients_sym)
-        self.build_accuracy(self._y, self._out)
+        self._acc = self.build_accuracy(self._y, self._out)
 
-    def build_forward_pass(self, input_placeholder):
+    def build_forward_pass(self, input_placeholder, name=None):
         layer_in = input_placeholder
         # Model layers
-        with tf.variable_scope(self._name, values=[layer_in]):
+        with tf.variable_scope(
+                name, default_name=self._name, values=[layer_in]):
             for layer in self._layers:
                 layer_out = layer(layer_in)
                 layer_in = layer_out
@@ -70,14 +71,26 @@ class Model:
         return grads, weights
 
     def build_apply_gradients(self, gradients_sym):
-        grad_var = [(g, w) for g, w in  zip(gradients_sym, self._weights_sym)]
+        grad_var = [(g, w) for g, w in zip(gradients_sym, self._weights_sym)]
         self._optimize = self._optimizer.apply_gradients(grad_var)
 
-    def build_accuracy(self, labels, output):
-        # Calculate accuracy
-        y_pred = tf.math.argmax(output, axis=1)
-        self._acc = tf.reduce_mean(
-            tf.cast(tf.equal(y_pred, labels), tf.float32))
+    def build_accuracy(self, labels, output, name=None):
+        with tf.variable_scope(
+                name,
+                default_name=self._name + "_accuracy",
+                values=[labels, output]):
+            y_pred = tf.math.argmax(output, axis=1)
+            return tf.reduce_mean(
+                tf.cast(tf.equal(y_pred, labels), tf.float32))
+
+    def assign_model_params(self, params, name=None):
+        if not name:
+            name = self._name + "_assign_params"
+        with tf.variable_scope(name, values=[params]):
+            for i in tf.get_collection(
+                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name):
+                if i.name in params:
+                    i.assign(params[i.name])
 
     @property
     def loss_sym(self):
@@ -98,15 +111,6 @@ class Model:
     def compute_acc(self, x, y):
         feed_dict = {self._x: x, self._y: y}
         return self._sess.run(self._acc, feed_dict=feed_dict)
-
-    def assign_model_params(self, params, name=None):
-        if not name:
-            name = self._name + "_assign_params"
-        with tf.variable_scope(name, values=[params]):
-            for i in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name):
-                if i.name in params:
-                    i.assign(params[i.name])
 
     def _set_saver(self):
         var_list = [

@@ -31,7 +31,7 @@ def main():
             'name': 'Label'
         }, sess)
         maml = Maml(
-            model, tasks, sess, pre_train_iterations=5, metatrain_iterations=0)
+            model, tasks, sess, pre_train_iterations=5, metatrain_iterations=1)
         # model.restore_model("data/model_12_44_03_20_19/model")
         maml.train()
 

@@ -55,16 +55,23 @@ class Maml:
 
             # loss_a is only used for pre training
             self._loss_a = None
+            self._loss_b = None
             for i in range(self._num_updates):
                 loss_a, loss_b = self._build_update(
                     self._input_a, self._label_a, self._input_b, self._label_b,
                     alpha)
                 if self._loss_a is None:
                     self._loss_a = loss_a
+            self._loss_b = loss_b
 
-            with tf.variable_scope("pre_train", values=[self._loss_a]):
+            with tf.variable_scope("pretrain", values=[self._loss_a]):
                 self._pretrain_op = tf.train.AdamOptimizer().minimize(
                     self._loss_a)
+
+            if self._metatrain_itr > 0:
+                with tf.variable_scope("metatrain", values=[self._loss_b]):
+                    self._metatrain_op = tf.train.AdamOptimizer().minimize(
+                        self._loss_b)
 
     def _build_update(self, input_a, label_a, input_b, label_b, alpha):
         values = [input_a, label_a, input_b, label_b, alpha]
@@ -110,8 +117,8 @@ class Maml:
                 pretrain_accs.append(pretrain_acc)
             pretrain_loss = np.mean(pretrain_losses)
             pretrain_acc = np.mean(pretrain_accs)
-            t_i_x, t_i_y = self._tasks[0].get_test_set()
-            test_acc = self._compute_accuracy(t_i_x, t_i_y)
+            input_test, label_test = self._tasks[0].get_test_set()
+            test_acc = self._compute_accuracy(input_test, label_test)
             self._logger.new_summary()
             self._logger.add_value("pretrain_loss", pretrain_loss)
             self._logger.add_value("accuracy/pretrain_acc", pretrain_acc)

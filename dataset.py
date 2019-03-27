@@ -18,4 +18,5 @@ class Mnist:
 
     def _next_batch(self, batch_size):
         batch, _ = self.train_data.train.next_batch(batch_size)
+        batch = batch.reshape([batch_size, 28, 28, 1])
         return batch

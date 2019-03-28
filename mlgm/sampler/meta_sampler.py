@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 
 class MetaSampler:
@@ -6,7 +7,9 @@ class MetaSampler:
                  test_classes, num_classes_per_batch, train_inputs,
                  train_labels, test_inputs, test_labels):
         assert num_classes_per_batch <= len(test_classes)
-        self._batch_size = batch_size
+        # Duplicate the batch size since we need to sample twice from the
+        # same distribution
+        self._batch_size = batch_size * 2
         self._meta_batch_size = meta_batch_size
         self._train_classes = train_classes
         self._test_classes = test_classes
@@ -18,58 +21,47 @@ class MetaSampler:
         self._train_labels = train_labels
         self._test_inputs = test_inputs
         self._test_labels = test_labels
-        for train_class in train_classes:
-            ids = np.where(train_class == self._train_labels)[0]
-            self._train_ids_per_label.update({train_class: ids})
-        for test_class in test_classes:
-            ids = np.where(test_class == self._test_labels)[0]
-            self._test_ids_per_label.update({test_class: ids})
+        self._dataset_sym, self._num_tasks = self._gen_train_metadata()
+        self._input_batches, self._label_batches = self._gen_metabatch()
 
-    def sample_metabatch(self):
-        self._distribution = np.array([
-            np.random.choice(
-                self._train_classes,
-                size=self._num_classes_per_batch,
-                replace=False) for _ in range(self._meta_batch_size)
-        ])
-        return self._sample_from_distribution(
-            self._distribution, self._train_inputs, self._train_labels,
-            self._train_ids_per_label)
+    def _gen_train_metadata(self):
+        raise NotImplementedError
 
-    def sample_metabatch_from_previous_distribution(self):
-        assert self._distribution is not None, "Call sample_metabatch() first"
-        return self._sample_from_distribution(
-            self._distribution, self._train_inputs, self._train_labels,
-            self._train_ids_per_label)
+    def _gen_metabatch(self):
+        num_inputs_per_batch = self._batch_size * self._num_classes_per_batch
+        num_inputs_per_meta_batch = (
+            num_inputs_per_batch * self._meta_batch_size)
+        meta_batch_dataset = self._dataset_sym.batch(num_inputs_per_meta_batch)
+        meta_batch_itr = meta_batch_dataset.make_one_shot_iterator()
+        meta_batch_sym = meta_batch_itr.get_next()
+        all_input_batches = []
+        all_label_batches = []
+        for i in range(self._meta_batch_size):
+            batch_input_sym = meta_batch_sym[0][i * num_inputs_per_batch:
+                                                (i + 1) * num_inputs_per_batch]
+            batch_label_sym = meta_batch_sym[1][i * num_inputs_per_batch:
+                                                (i + 1) * num_inputs_per_batch]
+            shuffle_batch_input_sym = []
+            shuffle_batch_label_sym = []
+            for k in range(self._batch_size):
+                class_ids = tf.range(0, self._num_classes_per_batch)
+                class_ids = tf.random_shuffle(class_ids)
+                interleaved_class_ids = class_ids * self._batch_size + k
+                train_instance_input_shuffle = tf.gather(
+                    batch_input_sym, interleaved_class_ids)
+                train_instance_label_shuffle = tf.gather(
+                    batch_label_sym, interleaved_class_ids)
+                shuffle_batch_input_sym.append(train_instance_input_shuffle)
+                shuffle_batch_label_sym.append(train_instance_label_shuffle)
+            shuffle_batch_input_sym = tf.concat(
+                shuffle_batch_input_sym, axis=0)
+            shuffle_batch_label_sym = tf.concat(
+                shuffle_batch_label_sym, axis=0)
+            all_input_batches.append(shuffle_batch_input_sym)
+            all_label_batches.append(shuffle_batch_label_sym)
+        all_input_batches = tf.stack(all_input_batches)
+        all_label_batches = tf.stack(all_label_batches)
+        return all_input_batches, all_label_batches
 
-    def _sample_from_distribution(self, distribution, inputs, labels,
-                                  ids_per_label):
-        meta_batch_inputs = None
-        meta_batch_labels = None
-        for sample in distribution:
-            batch_ids = None
-            for label in sample:
-                ids = np.random.choice(
-                    ids_per_label[label],
-                    size=self._batch_size,
-                    replace=False,
-                )[np.newaxis].T
-                if batch_ids is None:
-                    batch_ids = ids
-                else:
-                    batch_ids = np.append(batch_ids, ids, axis=1)
-            if meta_batch_inputs is None:
-                meta_batch_inputs = inputs[batch_ids][np.newaxis]
-                meta_batch_labels = labels[batch_ids][np.newaxis]
-            else:
-                meta_batch_inputs = np.append(
-                    meta_batch_inputs, inputs[batch_ids][np.newaxis], axis=0)
-                meta_batch_labels = np.append(
-                    meta_batch_labels, labels[batch_ids][np.newaxis], axis=0)
-        return meta_batch_inputs, meta_batch_labels
-
-    def sample_test_batch(self):
-        distribution = np.array([self._test_classes])
-        return self._sample_from_distribution(distribution, self._test_inputs,
-                                              self._test_labels,
-                                              self._test_ids_per_label)
+    def build_inputs_and_labels(self):
+        raise NotImplementedError

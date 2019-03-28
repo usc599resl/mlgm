@@ -9,9 +9,9 @@ from tensorflow.keras.layers import Layer
 class Model:
     def __init__(self,
                  layers,
-                 param_in,
-                 param_out,
                  sess,
+                 param_in=None,
+                 param_out=None,
                  loss_fn=tf.losses.sparse_softmax_cross_entropy,
                  optimizer_cls=tf.train.AdamOptimizer,
                  learning_rate=0.001,

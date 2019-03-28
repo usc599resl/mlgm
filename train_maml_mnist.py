@@ -4,35 +4,30 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from mlgm.algo import Maml
-from mlgm.sampler import MnistSampler
+from mlgm.sampler import MnistMetaSampler
 from mlgm.model import Model
 
 
 def main():
-    known_digits = list(range(7))
-    tasks = [
-        MnistSampler(known_digits + [7], batch_size=200),
-        # MnistSampler(known_digits + [8], batch_size=10),
-        # MnistSampler(known_digits + [9], batch_size=10)
-    ]
+    metasampler = MnistMetaSampler(
+        batch_size=4,
+        meta_batch_size=4,
+        train_digits=list(range(7)),
+        test_digits=list(range(7, 10)),
+        num_classes_per_batch=3)
     with tf.Session() as sess:
         model = Model([
             layers.Flatten(),
             layers.Dense(units=512, activation=tf.nn.relu),
             layers.Dropout(rate=0.2),
             layers.Dense(units=10, activation=tf.nn.softmax)
-        ], {
-            'shape': (None, 28, 28),
-            'dtype': 'float32',
-            'name': 'Input'
-        }, {
-            'shape': (None, ),
-            'dtype': 'int64',
-            'name': 'Label'
-        }, sess)
+        ], sess)
         maml = Maml(
-            model, tasks, sess, pre_train_iterations=5, metatrain_iterations=1)
-        # model.restore_model("data/model_12_44_03_20_19/model")
+            model,
+            metasampler,
+            sess,
+            pre_train_iterations=5,
+            metatrain_iterations=1)
         maml.train()
 
 

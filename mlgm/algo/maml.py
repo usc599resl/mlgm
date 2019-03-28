@@ -16,16 +16,16 @@ from mlgm.logger import Logger
 class Maml:
     def __init__(self,
                  model,
-                 tasks,
+                 metasampler,
                  sess,
                  name="maml",
                  num_updates=1,
-                 alpha=1.0,
+                 alpha=0.9,
                  beta=0.9,
                  pre_train_iterations=1000,
                  metatrain_iterations=1000):
         self._model = model
-        self._tasks = tasks
+        self._metasampler = metasampler
         self._sess = sess
         self._num_updates = num_updates
         self._alpha = alpha
@@ -39,39 +39,44 @@ class Maml:
     def _build(self):
         with self._sess.graph.as_default():
             # Algorithm Inputs
-            self._input_a = self._tasks[0].build_input_placeholder(
-                name="input_a")
-            self._label_a = self._tasks[0].build_label_placeholder(
-                name="label_a", dtype=tf.dtypes.int64)
-            self._input_b = self._tasks[0].build_input_placeholder(
-                name="input_b")
-            self._label_b = self._tasks[0].build_label_placeholder(
-                name="label_b", dtype=tf.dtypes.int64)
-            alpha = tf.constant(
-                self._alpha, name="alpha", dtype=self._input_a.dtype)
-            # This model builds the weights and the accuracy
-            output = self._model.build_forward_pass(self._input_a)
-            self._acc = self._model.build_accuracy(self._label_a, output)
+            (self._input_a, self._label_a, self._input_b,
+             self._label_b) = self._metasampler.build_inputs_and_labels()
 
-            # loss_a is only used for pre training
-            self._loss_a = None
-            self._loss_b = None
-            for i in range(self._num_updates):
-                loss_a, loss_b = self._build_update(
-                    self._input_a, self._label_a, self._input_b, self._label_b,
-                    alpha)
-                if self._loss_a is None:
-                    self._loss_a = loss_a
-            self._loss_b = loss_b
+            # This model builds the weights and the accuracy
+            def task_metalearn(args):
+                input_a, label_a, input_b, label_b = args
+                output = self._model.build_forward_pass(input_a)
+                acc = self._model.build_accuracy(label_a, output)
+
+                # loss_a is only used for pre training
+                loss_a = None
+                losses_b = []
+                for i in range(self._num_updates):
+                    loss, loss_b = self._build_update(
+                        input_a, label_a, input_b, label_b, self._alpha)
+                    if loss_a is None:
+                        loss_a = loss
+                    losses_b.append(loss_b)
+
+                return loss_a, losses_b, acc
+
+            out_dtype = (tf.float64, [tf.float64] * self._num_updates,
+                         tf.float32)
+            self._loss_a, self._losses_b, self._acc = tf.map_fn(
+                task_metalearn,
+                elems=(self._input_a, self._label_a, self._input_b,
+                       self._label_b),
+                dtype=out_dtype,
+                parallel_iterations=self._metasampler.meta_batch_size)
 
             with tf.variable_scope("pretrain", values=[self._loss_a]):
                 self._pretrain_op = tf.train.AdamOptimizer().minimize(
                     self._loss_a)
 
             if self._metatrain_itr > 0:
-                with tf.variable_scope("metatrain", values=[self._loss_b]):
+                with tf.variable_scope("metatrain", values=[self._losses_b]):
                     self._metatrain_op = tf.train.AdamOptimizer().minimize(
-                        self._loss_b)
+                        self._losses_b[self._num_updates - 1])
 
     def _build_update(self, input_a, label_a, input_b, label_b, alpha):
         values = [input_a, label_a, input_b, label_b, alpha]
@@ -91,11 +96,10 @@ class Maml:
             loss_b = self._model.build_loss(label_b, output_b)
         return loss_a, loss_b
 
-    def _compute_pretrain(self, input_vals, labels):
-        feed_dict = {self._input_a: input_vals, self._label_a: labels}
-        loss, acc, _ = self._sess.run(
-            [self._loss_a, self._acc, self._pretrain_op], feed_dict=feed_dict)
-        return loss, acc
+    def _compute_metatrain(self):
+        loss_a, losses_b, _ = self._sess.run(
+            [self._loss_a, self._losses_b, self._metatrain_op])
+        return loss_a, losses_b
 
     def _compute_accuracy(self, input_vals, labels):
         feed_dict = {self._input_a: input_vals, self._label_a: labels}
@@ -106,22 +110,12 @@ class Maml:
         if restore_model_path:
             self._model.restore_model(restore_model_path)
         for i in range(self._pre_train_itr + self._metatrain_itr):
-            done = False
-            pretrain_losses = []
-            pretrain_accs = []
-            while not done:
-                input_a, label_a, done = self._tasks[0].sample()
-                pretrain_loss, pretrain_acc = self._compute_pretrain(
-                    input_a, label_a)
-                pretrain_losses.append(pretrain_loss)
-                pretrain_accs.append(pretrain_acc)
-            pretrain_loss = np.mean(pretrain_losses)
-            pretrain_acc = np.mean(pretrain_accs)
-            input_test, label_test = self._tasks[0].get_test_set()
-            test_acc = self._compute_accuracy(input_test, label_test)
+            loss_a, losses_b = self._compute_metatrain()
+            loss_a = np.mean(loss_a)
+            losses_b = np.array(losses_b)
+            losses_b = np.mean(losses_b, axis=1)
             self._logger.new_summary()
-            self._logger.add_value("pretrain_loss", pretrain_loss)
-            self._logger.add_value("accuracy/pretrain_acc", pretrain_acc)
-            self._logger.add_value("accuracy/test_acc", test_acc)
+            self._logger.add_value("loss_a", loss_a)
+            self._logger.add_value("loss_b/update_", losses_b.tolist())
             self._logger.dump_summary(i)
         self._logger.close()

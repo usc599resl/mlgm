@@ -61,7 +61,8 @@ class MnistMetaSampler(MetaSampler):
         all_train_ids_sym = tf.convert_to_tensor(all_train_ids)
         train_inputs_sym = tf.convert_to_tensor(self._train_inputs)
         all_train_inputs = tf.gather(train_inputs_sym, all_train_ids_sym)
-        all_train_labels = tf.convert_to_tensor(all_train_labels)
+        all_train_labels = tf.convert_to_tensor(
+            all_train_labels, dtype=tf.dtypes.int64)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_train_inputs,
                                                           all_train_labels))
         return dataset_sym, num_tasks

@@ -18,8 +18,14 @@ class Logger:
         self._std_out = {}
 
     def add_value(self, name, value):
-        self._summary.value.add(tag=name, simple_value=value)
-        self._std_out.update({name: value})
+        if isinstance(value, list):
+            for i, val in enumerate(value):
+                name_id = name + "{}".format(i)
+                self._summary.value.add(tag=name_id, simple_value=val)
+                self._std_out.update({name_id: val})
+        else:
+            self._summary.value.add(tag=name, simple_value=value)
+            self._std_out.update({name: value})
 
     def add_graph(self, graph):
         self._writer.add_graph(graph)

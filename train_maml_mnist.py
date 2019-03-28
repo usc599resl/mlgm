@@ -26,8 +26,9 @@ def main():
             model,
             metasampler,
             sess,
-            pre_train_iterations=5,
-            metatrain_iterations=1)
+            num_updates=10,
+            pre_train_iterations=0,
+            metatrain_iterations=3)
         maml.train()
 
 

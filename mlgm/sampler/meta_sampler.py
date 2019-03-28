@@ -24,6 +24,10 @@ class MetaSampler:
         self._dataset_sym, self._num_tasks = self._gen_train_metadata()
         self._input_batches, self._label_batches = self._gen_metabatch()
 
+    @property
+    def meta_batch_size(self):
+        return self._meta_batch_size
+
     def _gen_train_metadata(self):
         raise NotImplementedError
 

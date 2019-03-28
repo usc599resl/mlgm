@@ -6,7 +6,7 @@ class Mnist:
 
     def __init__(self, name):
         self._name = name
-        self.image_size = 28 * 28
+        self.image_size = 28
         self.train_data = None
         self.num_trains = 0
         self._path = os.path.join('./data', self._name)
@@ -18,5 +18,5 @@ class Mnist:
 
     def _next_batch(self, batch_size):
         batch, _ = self.train_data.train.next_batch(batch_size)
-        batch = batch.reshape([batch_size, 28, 28, 1])
+        batch = batch.reshape([batch_size, self.image_size, self.image_size, 1])
         return batch

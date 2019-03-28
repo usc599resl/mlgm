@@ -6,7 +6,7 @@ from utils import *
 
 class GAN:
 
-    def __init__(self, dataset, batch_size=32, noise_dim=64, epochs=5, learning_rate=1e-4):
+    def __init__(self, dataset, batch_size=64, noise_dim=64, epochs=10, learning_rate=2e-4):
         self._dataset = dataset
         self._batch_size = batch_size
         self._noise_dim = noise_dim
@@ -16,28 +16,40 @@ class GAN:
 
     def train(self, session):
         session.run(tf.global_variables_initializer())
-        test_noise = np.random.uniform(0, 1, [self._batch_size, self._noise_dim])
+        test_noise = np.random.uniform(0., 1., [self._batch_size, self._noise_dim])
 
         for epoch in range(self._epochs):
             num_batches = self._dataset.num_trains // self._batch_size
 
-            for i in range(num_batches):    
+            for _ in range(num_batches):             
+                train_d = True
+                train_g = True
+
                 batch = self._dataset._next_batch(self._batch_size) 
-                noise = np.random.uniform(0, 1, [self._batch_size, self._noise_dim])                                           
+                noise = np.random.uniform(0, 1, [self._batch_size, self._noise_dim])
+
+                feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
+                d_loss, g_loss = session.run([self._d_loss, self._g_loss], feed_dict=feed_dict)
+                
+                if g_loss * 1.5 < d_loss:
+                    train_g = False                
+                if d_loss * 2 < g_loss:
+                    train_d = False                                           
 
                 # Train Discriminator
-                feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True }
-                _, d_error = session.run([self._d_opt, self._d_loss], feed_dict=feed_dict)
+                if train_d:
+                    feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
+                    session.run([self._d_opt], feed_dict=feed_dict)
 
                 # Train Generator
-                feed_dict = { self._noise: noise, self._is_train: True }
-                _, g_error = session.run([self._g_opt, self._g_loss], feed_dict=feed_dict)
-        
-            print("Epoch: {0}, d_loss: {1}, g_loss: {2}".format(epoch, d_error, g_error))
-            
-        feed_dict = {self._noise: test_noise, self._is_train: False}
-        samples = session.run(self._g_sample, feed_dict=feed_dict)
-        show_images(samples[:16])
+                if train_g:
+                    feed_dict = { self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
+                    session.run([self._g_opt], feed_dict=feed_dict)                
+                        
+            print("Epoch: {0}, d_loss: {1}, g_loss: {2}".format(epoch, d_loss, g_loss))                
+            feed_dict = {self._noise: test_noise, self._is_train: False, self._keep_prob: 1.0}
+            samples = session.run(self._g_sample, feed_dict=feed_dict)
+            show_images(samples)
 
     def _build_model(self):
         self._init_variables()
@@ -55,50 +67,57 @@ class GAN:
         # Optimizers
         d_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='d_')
         g_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='g_')
-        self._d_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._d_loss, var_list=d_vars)
-        self._g_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._g_loss, var_list=g_vars)
+
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            self._d_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._d_loss, var_list=d_vars)
+            self._g_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._g_loss, var_list=g_vars)             
+
 
     def _init_variables(self): 
-        self._real_input = tf.placeholder(tf.float32, [None, 28, 28, 1])
+        image_size = self._dataset.image_size
+        self._real_input = tf.placeholder(tf.float32, [None, image_size, image_size, 1])
         self._noise = tf.placeholder(tf.float32, [None, self._noise_dim])
         self._is_train = tf.placeholder(tf.bool)
+        self._keep_prob = tf.placeholder(dtype=tf.float32)
 
     def _discriminator(self, input, name='d_', reuse=None):
-        # We have multiple instances of the discriminator in the same computation graph,
-        # so set variable sharing if this is not the first invocation of this function.
-        with tf.variable_scope(name, reuse = reuse):
-            dis_conv1 = conv2d(input, 4, 2, 32, 'conv1')
-            dis_lrelu1 = leaky_relu(dis_conv1)
-            dis_conv2 = conv2d(dis_lrelu1, 4, 2, 64, 'conv2')
-            dis_batchnorm2 = batch_norm(dis_conv2, self._is_train)
-            dis_lrelu2 = leaky_relu(dis_batchnorm2)
-            dis_conv3 = conv2d(dis_lrelu2, 4, 2, 128, 'conv3')
-            dis_batchnorm3 = batch_norm(dis_conv3, self._is_train)
-            dis_lrelu3 = leaky_relu(dis_batchnorm3)
-            dis_reshape3 = tf.reshape(dis_lrelu3, [-1, 4 * 4 * 128])
-            dis_fc4 = fc(dis_reshape3, 1, 'fc4')
-            return dis_fc4
+        with tf.variable_scope(name, reuse = reuse):            
+            conv1 = tf.layers.conv2d(input, kernel_size=5, filters=64, strides=2, padding='same', activation=leaky_relu)
+            drop1 = tf.layers.dropout(conv1, self._keep_prob)
+            conv2 = tf.layers.conv2d(drop1, kernel_size=5, filters=64, strides=1, padding='same', activation=leaky_relu)
+            drop2 = tf.layers.dropout(conv2, self._keep_prob)
+            conv3 = tf.layers.conv2d(drop2, kernel_size=5, filters=64, strides=1, padding='same', activation=leaky_relu)
+            drop3 = tf.layers.dropout(conv3, self._keep_prob)
+            flatten = tf.contrib.layers.flatten(drop3)
+            fc1 = tf.layers.dense(flatten, units=128, activation=leaky_relu)
+            out = tf.layers.dense(fc1, units=1)
+
+            return out
 
     def _generator(self, input, name='g_'):
         with tf.variable_scope(name):
-            gen_fc1 = fc(input, 4 * 4 * 128, 'fc1')
-            gen_reshape1 = tf.reshape(gen_fc1, [-1, 4, 4, 128])
-            gen_batchnorm1 = batch_norm(gen_reshape1, self._is_train)
-            gen_lrelu1 = leaky_relu(gen_batchnorm1)
-            gen_conv2 = conv2d_transpose(gen_lrelu1, 4, 2, 64, 'conv2')
-            gen_batchnorm2 = batch_norm(gen_conv2, self._is_train)
-            gen_lrelu2 = leaky_relu(gen_batchnorm2)
-            gen_conv3 = conv2d_transpose(gen_lrelu2, 4, 2, 32, 'conv3')
-            gen_batchnorm3 = batch_norm(gen_conv3, self._is_train)
-            gen_lrelu3 = leaky_relu(gen_batchnorm3)
-            gen_conv4 = conv2d_transpose(gen_lrelu3, 4, 2, 1, 'conv4')
-            gen_sigmoid4 = tf.sigmoid(gen_conv4)
-            return gen_sigmoid4
+            d1 = 4
+            d2 = 1
+            activation = leaky_relu
+            momentum = 0.99
+            x = tf.layers.dense(input, units=d1 * d1 * d2, activation=activation)
+            x = tf.layers.dropout(x, self._keep_prob)      
+            x = tf.contrib.layers.batch_norm(x, is_training=self._is_train, decay=momentum)  
+            x = tf.reshape(x, shape=[-1, d1, d1, d2])
+            x = tf.image.resize_images(x, size=[7, 7])
+            x = tf.layers.conv2d_transpose(x, kernel_size=5, filters=64, strides=2, padding='same', activation=activation)
+            x = tf.layers.dropout(x, self._keep_prob)
+            x = tf.contrib.layers.batch_norm(x, is_training=self._is_train, decay=momentum)
+            x = tf.layers.conv2d_transpose(x, kernel_size=5, filters=64, strides=2, padding='same', activation=activation)
+            x = tf.layers.dropout(x, self._keep_prob)
+            x = tf.contrib.layers.batch_norm(x, is_training=self._is_train, decay=momentum)
+            x = tf.layers.conv2d_transpose(x, kernel_size=5, filters=64, strides=1, padding='same', activation=activation)
+            x = tf.layers.dropout(x, self._keep_prob)
+            x = tf.contrib.layers.batch_norm(x, is_training=self._is_train, decay=momentum)
+            x = tf.layers.conv2d_transpose(x, kernel_size=5, filters=1, strides=1, padding='same', activation=tf.nn.sigmoid)
+            return x
 
     def _loss(self, logits, labels):
         loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
         return tf.reduce_mean(loss)
-
-    def _sample_noise(self, shape=(1, 1)):
-        return 
-

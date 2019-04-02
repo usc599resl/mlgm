@@ -1,4 +1,5 @@
 /MNIST_data
+/SVHN_data
 /model
 /data
 /__pycache__

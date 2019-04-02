@@ -8,22 +8,29 @@ from vae import VAE
 from dataloader import DataLoader
 
 
-def test_reconstruction(model, data_loader, h=28, w=28, batch_size=100):
+def test_reconstruction(model, data_loader, batch_size=100):
     batch = data_loader.sample(batch_size, test=True)
     x_reconstructed = model.reconstruct(batch)
 
     n = np.sqrt(batch_size).astype(np.int32)
-    I_reconstructed = np.empty((h*n, 2*w*n))
+    w = data_loader.sample_shape[0]
+    h = data_loader.sample_shape[1]
+    if data_loader.dataset_in_rgb:
+        c = data_loader.sample_shape[2]
+        I_reconstructed = np.empty((h*n, 2*w*n, c))
+    else:
+        I_reconstructed = np.empty((h*n, 2*w*n))
     for i in range(n):
         for j in range(n):
             x = np.concatenate(
-                (x_reconstructed[i*n+j, :].reshape(h, w), 
-                 batch[i*n+j, :].reshape(h, w)),
+                (x_reconstructed[i*n+j, :].reshape(data_loader.sample_shape), 
+                 batch[i*n+j, :].reshape(data_loader.sample_shape)),
                 axis=1
             )
             I_reconstructed[i*h:(i+1)*h, j*2*w:(j+1)*2*w] = x
 
     plt.figure(figsize=(10, 20))
+    plt.title('Odd column is generated image. Column number starts with 1')
     plt.imshow(I_reconstructed, cmap='gray')
     plt.show()
 
@@ -36,9 +43,19 @@ def test_transformation(model, data_loader, batch_size=2000):
     plt.show()
 
 def test_interpolation(model, data_loader, num=None):
-	n = 30  # figure with 20x20 digits
-	digit_size = 28
-	figure = np.zeros((digit_size * n, digit_size * n))
+	"""
+	Currently only works when latent_dim=2
+	"""
+	assert model.latent_dim == 2, "Test interpolation only works for latent_dim=2 now"
+	n = 30
+	width = data_loader.sample_shape[0]
+	height = data_loader.sample_shape[1]
+	if data_loader.dataset_in_rgb:
+		channel = data_loader.sample_shape[2]
+		figure = np.zeros((width * n, height * n, channel))
+	else:
+		figure = np.zeros((width * n, height * n))
+
 	if not num:
 		grid_x = np.linspace(-2., 2., n)
 		grid_y = np.linspace(-2., 2., n)
@@ -48,16 +65,16 @@ def test_interpolation(model, data_loader, num=None):
 	for i, yi in enumerate(grid_y):
 	    for j, xi in enumerate(grid_x):
 	        z_sample = np.array([[xi, yi]])
-	        digit = model.reconstruct_from_z(z_sample).reshape(digit_size, digit_size)
-	        figure[i * digit_size: (i + 1) * digit_size,
-	               j * digit_size: (j + 1) * digit_size] = digit
+	        digit = model.reconstruct_from_z(z_sample).reshape(data_loader.sample_shape)
+	        figure[i * width: (i + 1) * width,
+	               j * height: (j + 1) * height] = digit
 
 	plt.figure(figsize=(10, 10))
 	plt.imshow(figure, cmap='gray')
 	plt.show()
 
 def get_z_range(num, n):
-	# only illustrate number 1 and 2
+	# only illustrate number 1 and 2 for MNIST
 	assert num == 1 or num == 2, ("Only illustrate number 1 and 2. "
 	"Find the latent range yourself for other numbers.")
 
@@ -71,13 +88,13 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	data_loader = DataLoader(dataset='mnist')
-	model = VAE(input_dim=data_loader.input_dim, latent_dim=2)
+	data_loader = DataLoader(dataset='svhn') # or 'mnist'
+	model = VAE(input_dim=data_loader.input_dim, latent_dim=16)
 
 	log_step = 10
 	batch_size = 32
-	num_epoch = 100
-	epoch_cycle = 2000
+	num_epoch = 1
+	epoch_cycle = 100
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-l", "--load", help="load model or not", action="store_true")
@@ -88,7 +105,8 @@ if __name__=="__main__":
 	with tf.Session() as sess:
 		with tf.device('cpu:0'):
 			saver = tf.train.Saver()
-		with tf.device('gpu:0'):
+		# uncomment to use GPU
+		# with tf.device('gpu:0'):
 			sess.run(tf.global_variables_initializer())
 
 			if load_model:
@@ -100,6 +118,13 @@ if __name__=="__main__":
 					start_time = time.time()
 					for _ in range(epoch_cycle):
 						batch = data_loader.sample(batch_size)
+						########################################################################
+						## This part of code is only for testing if forward and loss_func works
+						## loss_f_val is similar to losses 
+						# x_hat, mu_out, log_sigma_out = model.forward(batch, model.get_weights())
+						# loss_f = model.loss_func(x_hat, mu_out, log_sigma_out)
+						# loss_f_val = sess.run(loss_f, feed_dict={model.x: batch})
+						########################################################################
 						losses = model.optimize(batch)
 						end_time = time.time()
 
@@ -112,9 +137,11 @@ if __name__=="__main__":
 				save_path = saver.save(sess, "./model/vae_model.ckpt")
 				print("Model saved in path: %s" % save_path)
 
-			# test_reconstruction(model, data_loader)
+			################# Function below are for visualization ####################
+			test_reconstruction(model, data_loader)
 			# test_transformation(model, data_loader)
-			test_interpolation(model, data_loader)
+			# test_interpolation(model, data_loader)
+			###########################################################################
 	print('Done!')
 
 

@@ -6,3 +6,5 @@ data/
 
 # Text Editors
 *.swp
+
+env/

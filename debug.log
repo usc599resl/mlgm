@@ -1,0 +1,834 @@
+========Before map_fn=========
+(4, 12, 28, 28)
+=================
+=================
+(12, 28, 28)
+=================
+===================build_forward_pass=================
+[]
+[]
+[]
+[]
+Tensor("map/while/dense_1/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_1/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_2/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_3/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_4/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_1/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_1/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_1/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_5/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_6/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_2/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_2/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_2/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_7/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_8/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_3/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_3/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_3/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_9/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_10/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_4/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_4/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_4/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_11/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_12/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_5/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_5/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_5/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_13/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_14/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_6/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_6/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_6/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_15/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_16/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_7/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_7/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_7/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_17/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_18/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_8/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_8/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_8/sub_3:0' shape=(10,) dtype=float64>]
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_19/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+map/while/dense/kernel:0
+map/while/dense/bias:0
+map/while/dense_1/kernel:0
+map/while/dense_1/bias:0
+===================build_forward_pass=================
+[]
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>]
+[]
+[<tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+Tensor("map/while/dense_1_20/Softmax:0", shape=(12, 10), dtype=float64)
+======================================================
+[<tf.Tensor 'map/while/fast_weights_9/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_3:0' shape=(10,) dtype=float64>]
+---------------var---------------
+[<tf.Variable 'map/while/dense/kernel:0' shape=(784, 512) dtype=float64>, <tf.Variable 'map/while/dense/bias:0' shape=(512,) dtype=float64>, <tf.Variable 'map/while/dense_1/kernel:0' shape=(512, 10) dtype=float64>, <tf.Variable 'map/while/dense_1/bias:0' shape=(10,) dtype=float64>]
+------------------------------
+[<tf.Tensor 'map/while/fast_weights_9/sub:0' shape=(784, 512) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_1:0' shape=(512,) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_2:0' shape=(512, 10) dtype=float64>, <tf.Tensor 'map/while/fast_weights_9/sub_3:0' shape=(10,) dtype=float64>]
+[2.3282392  2.33141685 2.32181191 2.31886744]
+[array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ]), array([2.32944655, 2.33040738, 2.31494355, 2.3077898 ])]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+----------vars----------
+[[ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]
+ [ 0.00099999  0.001      -0.00099994 -0.00099994 -0.0009997   0.00099994
+  -0.00099999 -0.00099999 -0.00099998 -0.00099999]]
+---------fast_weights------
+[[ 0.0459378   0.02661491 -0.01412897 -0.0108845  -0.01309812 -0.01779739
+   0.01061278 -0.01132277 -0.00694833 -0.01298502]
+ [ 0.04362272  0.02488002  0.0151196  -0.01256608 -0.01446625 -0.01740312
+  -0.0097085  -0.01079715 -0.00730496 -0.01537589]
+ [ 0.03682234 -0.00843909  0.02347984  0.01650739 -0.01358978 -0.02108398
+  -0.0089414  -0.01066071 -0.00718205 -0.01091216]
+ [ 0.03291899 -0.00776384  0.02111933 -0.01060631  0.02224249 -0.02102177
+  -0.00860433 -0.01119352 -0.00741647 -0.01367418]]
+--------------------------------------------------
+exp_name: data/maml_07_03_04_02_19
+itr: 0
+loss_a: 2.32508385181427
+loss_b/update_0: 2.320646822452545
+loss_b/update_1: 2.320646822452545
+loss_b/update_2: 2.320646822452545
+loss_b/update_3: 2.320646822452545
+loss_b/update_4: 2.320646822452545
+loss_b/update_5: 2.320646822452545
+loss_b/update_6: 2.320646822452545
+loss_b/update_7: 2.320646822452545
+loss_b/update_8: 2.320646822452545
+loss_b/update_9: 2.320646822452545
+--------------------------------------------------
+[2.22935176 2.26883745 2.24508667 2.26545739]
+[array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788]), array([2.24317527, 2.27707481, 2.25073409, 2.27529788])]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+----------vars----------
+[[ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]
+ [ 0.00191066  0.00160825 -0.00033233 -0.00060212 -0.00175644  0.00038903
+  -0.0019481  -0.00200092 -0.00199334 -0.00200026]]
+---------fast_weights------
+[[ 0.04188105 -0.00770652 -0.01918194  0.01455168  0.02069887 -0.02252221
+  -0.00688903 -0.00965462 -0.00687868 -0.01102417]
+ [ 0.04446405 -0.00997662 -0.01878754  0.00882841 -0.01560476  0.03004382
+  -0.00926669 -0.01333926 -0.00931088 -0.01377609]
+ [ 0.0573479  -0.00923674 -0.01527929  0.0179493  -0.01269983 -0.02218881
+   0.00441182 -0.00860455 -0.00749672 -0.01092865]
+ [ 0.05045282  0.03642992 -0.02122473 -0.01303561  0.0153884  -0.02926732
+  -0.01080736 -0.01246798 -0.0084817  -0.01371202]]
+--------------------------------------------------
+exp_name: data/maml_07_03_04_02_19
+itr: 1
+loss_a: 2.2521833181381226
+loss_b/update_0: 2.2615705132484436
+loss_b/update_1: 2.2615705132484436
+loss_b/update_2: 2.2615705132484436
+loss_b/update_3: 2.2615705132484436
+loss_b/update_4: 2.2615705132484436
+loss_b/update_5: 2.2615705132484436
+loss_b/update_6: 2.2615705132484436
+loss_b/update_7: 2.2615705132484436
+loss_b/update_8: 2.2615705132484436
+loss_b/update_9: 2.2615705132484436
+--------------------------------------------------
+[2.16894484 2.18068504 2.12331128 2.17733955]
+[array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031]), array([2.14763021, 2.14749575, 2.12709117, 2.14331031])]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+----------vars----------
+[[ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]
+ [ 0.00285618  0.00167782 -0.00028612 -0.00103558 -0.00152846 -0.00039803
+  -0.00288866 -0.0029913  -0.00299083 -0.00299729]]
+---------fast_weights------
+[[ 0.01658299  0.03728577 -0.01462877 -0.01089541 -0.01280726  0.01265342
+  -0.00918765 -0.00981593 -0.00902209 -0.01074734]
+ [-0.01207168 -0.00461663  0.02854302 -0.00915726 -0.01116081  0.02801833
+  -0.00659192 -0.00766013 -0.00690247 -0.0089827 ]
+ [ 0.00347232 -0.00503113 -0.0134203   0.01660874 -0.01094522  0.03052755
+  -0.00772267 -0.0079374  -0.00695846 -0.00917568]
+ [ 0.0071477  -0.00603257 -0.01745809 -0.0126119   0.02466656  0.03102216
+  -0.00909921 -0.00905507 -0.0083252  -0.01083663]]
+--------------------------------------------------
+exp_name: data/maml_07_03_04_02_19
+itr: 2
+loss_a: 2.1625701785087585
+loss_b/update_0: 2.141381859779358
+loss_b/update_1: 2.141381859779358
+loss_b/update_2: 2.141381859779358
+loss_b/update_3: 2.141381859779358
+loss_b/update_4: 2.141381859779358
+loss_b/update_5: 2.141381859779358
+loss_b/update_6: 2.141381859779358
+loss_b/update_7: 2.141381859779358
+loss_b/update_8: 2.141381859779358
+loss_b/update_9: 2.141381859779358
+--------------------------------------------------

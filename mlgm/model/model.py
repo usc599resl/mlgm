@@ -51,19 +51,28 @@ class Model:
     def build_forward_pass(self, input_placeholder, name=None):
         layer_in = input_placeholder
         # Model layers
-        with tf.variable_scope(
-                name, default_name=self._name, values=[layer_in]):
-            for layer in self._layers:
-                layer_out = layer(layer_in)
-                layer_in = layer_out
+        # with tf.variable_scope(
+        #         name, default_name=self._name, values=[layer_in], reuse=True) as vs:
+        # print(vs.name)
+        print("===================build_forward_pass=================")
+        for layer in self._layers:
+            # print(layer.get_config())
+            print(layer.weights)
+            layer_out = layer(layer_in)
+            layer_in = layer_out
+        print(layer_out)
+        print("======================================================")
 
         return layer_out
 
     def build_loss(self, label_placeholder, model_out, name=None):
         if not name:
             name = self._name + "_loss"
-        with tf.variable_scope(name, values=[label_placeholder, model_out]):
-            return self._loss_fn(label_placeholder, model_out)
+        # with tf.variable_scope(name, default_name=self._name, values=[label_placeholder, model_out], reuse=True) as vs:
+        # print(vs.name)
+        loss = self._loss_fn(label_placeholder, model_out)
+        # print(loss)
+        return loss
 
     def build_compute_gradients(self, loss_sym):
         grad_var = self._optimizer.compute_gradients(loss_sym)
@@ -75,22 +84,27 @@ class Model:
         self._optimize = self._optimizer.apply_gradients(grad_var)
 
     def build_accuracy(self, labels, output, name=None):
-        with tf.variable_scope(
-                name,
-                default_name=self._name + "_accuracy",
-                values=[labels, output]):
-            y_pred = tf.math.argmax(output, axis=1)
-            return tf.reduce_mean(
-                tf.cast(tf.equal(y_pred, labels), tf.float32))
+        # with tf.variable_scope(
+        #         name, default_name=self._name + "_accuracy",
+        #         values=[labels, output], reuse=True) as vs:
+        # print(vs.name)
+        y_pred = tf.math.argmax(output, axis=1)
+        acc = tf.reduce_mean(
+            tf.cast(tf.equal(y_pred, labels), tf.float32))
+        # print(acc)
+        return acc
 
     def assign_model_params(self, params, name=None):
         if not name:
             name = self._name + "_assign_params"
-        with tf.variable_scope(name, values=[params]):
-            for i in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name):
-                if i.name in params:
-                    i.assign(params[i.name])
+
+        # print(params)
+        # with tf.variable_scope(name, values=[params]):
+        for i in tf.get_collection(
+                tf.GraphKeys.GLOBAL_VARIABLES):
+            print(i.name)
+            if i.name in params:
+                i.assign(params[i.name])
 
     @property
     def loss_sym(self):

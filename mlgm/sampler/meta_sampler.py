@@ -35,9 +35,11 @@ class MetaSampler:
         num_inputs_per_batch = self._batch_size * self._num_classes_per_batch
         num_inputs_per_meta_batch = (
             num_inputs_per_batch * self._meta_batch_size)
+
         meta_batch_dataset = self._dataset_sym.batch(num_inputs_per_meta_batch)
         meta_batch_itr = meta_batch_dataset.make_one_shot_iterator()
         meta_batch_sym = meta_batch_itr.get_next()
+
         all_input_batches = []
         all_label_batches = []
         for i in range(self._meta_batch_size):
@@ -57,12 +59,14 @@ class MetaSampler:
                     batch_label_sym, interleaved_class_ids)
                 shuffle_batch_input_sym.append(train_instance_input_shuffle)
                 shuffle_batch_label_sym.append(train_instance_label_shuffle)
+
             shuffle_batch_input_sym = tf.concat(
                 shuffle_batch_input_sym, axis=0)
             shuffle_batch_label_sym = tf.concat(
                 shuffle_batch_label_sym, axis=0)
             all_input_batches.append(shuffle_batch_input_sym)
             all_label_batches.append(shuffle_batch_label_sym)
+            
         all_input_batches = tf.stack(all_input_batches)
         all_label_batches = tf.stack(all_label_batches)
         return all_input_batches, all_label_batches

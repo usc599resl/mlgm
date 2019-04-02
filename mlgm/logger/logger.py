@@ -14,17 +14,17 @@ class Logger:
         self._writer.flush()
 
     def new_summary(self):
-        self._summary = tf.Summary()
+        # self._summary = tf.Summary()
         self._std_out = {}
 
     def add_value(self, name, value):
         if isinstance(value, list):
             for i, val in enumerate(value):
                 name_id = name + "{}".format(i)
-                self._summary.value.add(tag=name_id, simple_value=val)
+                # self._summary.value.add(tag=name_id, simple_value=val)
                 self._std_out.update({name_id: val})
         else:
-            self._summary.value.add(tag=name, simple_value=value)
+            # self._summary.value.add(tag=name, simple_value=value)
             self._std_out.update({name: value})
 
     def add_graph(self, graph):
@@ -35,7 +35,7 @@ class Logger:
         return self._summary_mrg
 
     def dump_summary(self, itr):
-        self._writer.add_summary(self._summary, itr)
+        # self._writer.add_summary(self._summary, itr)
         self._writer.flush()
         print("--------------------------------------------------")
         print("exp_name: {}".format(self._log_path))

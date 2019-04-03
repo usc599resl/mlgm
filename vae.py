@@ -11,7 +11,7 @@ class VAE:
                  encoder_hidden_sizes=(256, 128, 64),
                  decoder_hidden_sizes=(64, 128, 256),
                  hidden_nonlinearity=tf.nn.elu,
-                 latent_dim=2):
+                 latent_dim=16):
         self.input_dim = input_dim
         self.optimizer = optimizer
         self.learning_rate = learning_rate
@@ -123,7 +123,11 @@ class VAE:
         mu_out = tf.matmul(out, mu_w) + mu_b
         log_sigma_out = tf.matmul(out, log_sigma_w) + log_sigma_b
 
-        out = mu_out + tf.exp(log_sigma_out) * self.eps
+        eps = tf.random_normal(
+                shape=tf.shape(log_sigma_out),
+                mean=0, stddev=1, dtype=tf.float32)
+
+        out = mu_out + tf.exp(log_sigma_out) * eps
 
         v = 'decoder'
         for h in ['hidden_0', 'hidden_1', 'hidden_2']:
@@ -135,13 +139,13 @@ class VAE:
 
         return x_hat, mu_out, log_sigma_out
 
-    def loss_func(self, x_hat, mu, log_sigma):
+    def loss_func(self, x, x_hat, mu, log_sigma):
         epsilon = 1e-10
         recon_loss = -tf.reduce_sum(
-            self.x * tf.log(epsilon + x_hat) + 
-            (1 - self.x) * tf.log(epsilon + 1 - x_hat), 
+            x * tf.log(epsilon + x_hat) + 
+            (1 - x) * tf.log(epsilon + 1 - x_hat), 
             axis=1
-        )
+        )        
         recon_loss = tf.reduce_mean(recon_loss)
 
         latent_loss = 0.5 * tf.reduce_sum(

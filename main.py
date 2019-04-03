@@ -35,6 +35,10 @@ from maml import MAML
 from tensorflow.python.platform import flags
 import pdb
 
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
 FLAGS = flags.FLAGS
 
 ## Dataset/method options
@@ -63,9 +67,9 @@ flags.DEFINE_bool('stop_grad', False, 'if True, do not use second derivatives in
 flags.DEFINE_bool('log', True, 'if false, do not log summaries, for debugging code.')
 flags.DEFINE_string('logdir', 'logs/omniglot5way/', 'directory for summaries and checkpoints.')
 flags.DEFINE_bool('resume', True, 'resume training if there is a model available')
-flags.DEFINE_bool('train', True, 'True to train, False to test.')
+flags.DEFINE_bool('train', False, 'True to train, False to test.')
 flags.DEFINE_integer('test_iter', -1, 'iteration to load model (-1 for latest model)')
-flags.DEFINE_bool('test_set', False, 'Set to true to test on the the test set, False for the validation set.')
+flags.DEFINE_bool('test_set', True, 'Set to true to test on the the test set, False for the validation set.')
 flags.DEFINE_integer('train_update_batch_size', -1, 'number of examples used for gradient update during training (use if you want to test with a different number).')
 flags.DEFINE_float('train_update_lr', -1, 'value of inner gradient step step during training. (use if you want to test with a different value)') # 0.1 for omniglot
 
@@ -136,42 +140,32 @@ def test(model, saver, sess, exp_string, data_generator, test_num_updates=None):
         if 'generate' not in dir(data_generator):
             feed_dict = {}
             feed_dict = {model.meta_lr : 0.0}
-        else:
-            batch_x, batch_y, amp, phase = data_generator.generate(train=False)
 
-            if FLAGS.baseline == 'oracle': # NOTE - this flag is specific to sinusoid
-                batch_x = np.concatenate([batch_x, np.zeros([batch_x.shape[0], batch_x.shape[1], 2])], 2)
-                batch_x[0, :, 1] = amp[0]
-                batch_x[0, :, 2] = phase[0]
+        result = sess.run([model.metaval_total_loss1] +  model.metaval_total_losses2, feed_dict)
 
-            inputa = batch_x[:, :num_classes*FLAGS.update_batch_size, :]
-            inputb = batch_x[:,num_classes*FLAGS.update_batch_size:, :]
-            labela = batch_y[:, :num_classes*FLAGS.update_batch_size, :]
-            labelb = batch_y[:,num_classes*FLAGS.update_batch_size:, :]
+    sample_data_100 = model.inputa
+    test_reconstruction(model.model, sample_data_100)
 
-            feed_dict = {model.inputa: inputa, model.inputb: inputb,  model.labela: labela, model.labelb: labelb, model.meta_lr: 0.0}
+        # metaval_accuracies.append(result)
 
-        result = sess.run([model.total_loss1] +  model.total_losses2, feed_dict)
-        metaval_accuracies.append(result)
+    # metaval_accuracies = np.array(metaval_accuracies)
+    # means = np.mean(metaval_accuracies, 0)
+    # stds = np.std(metaval_accuracies, 0)
+    # ci95 = 1.96*stds/np.sqrt(NUM_TEST_POINTS)
 
-    metaval_accuracies = np.array(metaval_accuracies)
-    means = np.mean(metaval_accuracies, 0)
-    stds = np.std(metaval_accuracies, 0)
-    ci95 = 1.96*stds/np.sqrt(NUM_TEST_POINTS)
+    # print('Mean validation accuracy/loss, stddev, and confidence intervals')
+    # print((means, stds, ci95))
 
-    print('Mean validation accuracy/loss, stddev, and confidence intervals')
-    print((means, stds, ci95))
-
-    out_filename = FLAGS.logdir +'/'+ exp_string + '/' + 'test_ubs' + str(FLAGS.update_batch_size) + '_stepsize' + str(FLAGS.update_lr) + '.csv'
-    out_pkl = FLAGS.logdir +'/'+ exp_string + '/' + 'test_ubs' + str(FLAGS.update_batch_size) + '_stepsize' + str(FLAGS.update_lr) + '.pkl'
-    with open(out_pkl, 'wb') as f:
-        pickle.dump({'mses': metaval_accuracies}, f)
-    with open(out_filename, 'w') as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerow(['update'+str(i) for i in range(len(means))])
-        writer.writerow(means)
-        writer.writerow(stds)
-        writer.writerow(ci95)
+    # out_filename = FLAGS.logdir +'/'+ exp_string + '/' + 'test_ubs' + str(FLAGS.update_batch_size) + '_stepsize' + str(FLAGS.update_lr) + '.csv'
+    # out_pkl = FLAGS.logdir +'/'+ exp_string + '/' + 'test_ubs' + str(FLAGS.update_batch_size) + '_stepsize' + str(FLAGS.update_lr) + '.pkl'
+    # with open(out_pkl, 'wb') as f:
+    #     pickle.dump({'mses': metaval_accuracies}, f)
+    # with open(out_filename, 'w') as f:
+    #     writer = csv.writer(f, delimiter=',')
+    #     writer.writerow(['update'+str(i) for i in range(len(means))])
+    #     writer.writerow(means)
+    #     writer.writerow(stds)
+    #     writer.writerow(ci95)
 
 def main():
     if FLAGS.train == False:
@@ -266,6 +260,27 @@ def main():
         train(model, saver, sess, exp_string, data_generator, resume_itr)
     else:
         test(model, saver, sess, exp_string, data_generator)
+
+
+def test_reconstruction(vae, input_data):
+    input_data = input_data.eval().reshape(input_data.get_shape().as_list()[1:])
+    x_reconstructed = vae.reconstruct(input_data)
+
+    n = 5
+    w, h = 28, 28
+
+    I_reconstructed = np.empty((h*n, 2*w))
+    for i in range(n):
+        x = np.concatenate(
+            (x_reconstructed[i, :].reshape((w, h)), 
+             input_data[i, :].reshape((w, h))),
+             axis=1)
+        I_reconstructed[i*h:(i+1)*h, :] = x
+
+    plt.figure(figsize=(10, 20))
+    plt.title('Odd column is generated image. Column number starts with 1')
+    plt.imshow(I_reconstructed, cmap='gray')
+    plt.show()
 
 if __name__ == "__main__":
     main()

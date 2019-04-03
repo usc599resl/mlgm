@@ -1,6 +1,8 @@
 import argparse
 import tensorflow as tf
 import time
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -88,13 +90,13 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	data_loader = DataLoader(dataset='svhn') # or 'mnist'
+	data_loader = DataLoader(dataset='mnist') # or 'mnist'
 	model = VAE(input_dim=data_loader.input_dim, latent_dim=16)
 
 	log_step = 10
 	batch_size = 32
-	num_epoch = 1
-	epoch_cycle = 100
+	num_epoch = 100
+	epoch_cycle = 1000
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-l", "--load", help="load model or not", action="store_true")

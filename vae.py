@@ -34,6 +34,8 @@ class VAE:
                 hidden_sizes=self.encoder_hidden_sizes[:-1],
                 hidden_nonlinearity=self.hidden_nonlinearity,
                 output_nonlinearity=self.hidden_nonlinearity,
+                hidden_w_init=tf.zeros_initializer(),
+                output_w_init=tf.zeros_initializer(),
                 name="encoder")
 
             self.mu = tf.layers.dense(inputs=self.encoder, units=self.latent_dim,
@@ -54,6 +56,8 @@ class VAE:
                 hidden_sizes=self.decoder_hidden_sizes,
                 hidden_nonlinearity=self.hidden_nonlinearity,
                 output_nonlinearity=tf.sigmoid,
+                hidden_w_init=tf.zeros_initializer(),
+                output_w_init=tf.zeros_initializer(),
                 name="decoder")
 
         with tf.name_scope('loss'):

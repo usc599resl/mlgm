@@ -48,12 +48,23 @@ class Model:
         self.build_apply_gradients(self._gradients_sym)
         self._acc = self.build_accuracy(self._y, self._out)
 
-    def build_forward_pass(self, input_placeholder, name=None):
-        layer_in = input_placeholder
+    def _set_tensors(self, layer, use_tensors):
+        if isinstance(layer, tf.keras.layers.Dense):
+            for i in range(len(layer.weights)):
+                if layer.weights[i].name in use_tensors:
+                    if "kernel" in layer.weights[i].name:
+                        layer.kernel = use_tensors[layer.weights[i].name]
+                    elif "bias" in layer.weights[i].name:
+                        layer.bias = use_tensors[layer.weights[i].name]
+
+    def build_forward_pass(self, input_tensor, use_tensors=None, name=None):
+        layer_in = input_tensor
         # Model layers
         with tf.variable_scope(
                 name, default_name=self._name, values=[layer_in]):
             for layer in self._layers:
+                if use_tensors:
+                    self._set_tensors(layer, use_tensors)
                 layer_out = layer(layer_in)
                 layer_in = layer_out
 
@@ -65,10 +76,20 @@ class Model:
         with tf.variable_scope(name, values=[label_placeholder, model_out]):
             return self._loss_fn(label_placeholder, model_out)
 
-    def build_compute_gradients(self, loss_sym):
-        grad_var = self._optimizer.compute_gradients(loss_sym)
-        grads, weights = map(list, zip(*grad_var))
-        return grads, weights
+    def build_gradients(self, loss_sym, fast_params=None):
+        grads = []
+        params = []
+        if fast_params:
+            for name, w in fast_params.items():
+                params.append(w)
+                grads.append(tf.gradients(loss_sym, w)[0])
+        else:
+            for param in tf.get_collection(
+                    tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model"):
+                # TODO: remove hard coded scope
+                params.append(param)
+                grads.append(tf.gradients(loss_sym, param)[0])
+        return grads, params
 
     def build_apply_gradients(self, gradients_sym):
         grad_var = [(g, w) for g, w in zip(gradients_sym, self._weights_sym)]

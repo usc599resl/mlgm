@@ -51,9 +51,10 @@ class Maml:
                 # loss_a is only used for pre training
                 loss_a = None
                 losses_b = []
+                f_w = None
                 for i in range(self._num_updates):
-                    loss, loss_b = self._build_update(
-                        input_a, label_a, input_b, label_b, self._alpha)
+                    loss, loss_b, f_w = self._build_update(
+                        input_a, label_a, input_b, label_b, self._alpha, f_w)
                     if loss_a is None:
                         loss_a = loss
                     losses_b.append(loss_b)
@@ -78,23 +79,29 @@ class Maml:
                     self._metatrain_op = tf.train.AdamOptimizer().minimize(
                         self._losses_b[self._num_updates - 1])
 
-    def _build_update(self, input_a, label_a, input_b, label_b, alpha):
+    def _build_update(self,
+                      input_a,
+                      label_a,
+                      input_b,
+                      label_b,
+                      alpha,
+                      fast_weights=None):
         values = [input_a, label_a, input_b, label_b, alpha]
         loss_a = None
         loss_b = None
         with tf.variable_scope("update", values=values):
-            output_a = self._model.build_forward_pass(input_a)
+            output_a = self._model.build_forward_pass(input_a, fast_weights)
             loss_a = self._model.build_loss(label_a, output_a)
-            grads, weights = self._model.build_compute_gradients(loss_a)
+            grads, weights = self._model.build_gradients(
+                loss_a, fast_weights)
             with tf.variable_scope("fast_weights", values=[weights, grads]):
                 fast_weights = {
                     w.name: w - alpha * g
                     for w, g in zip(weights, grads)
                 }
-            self._model.assign_model_params(fast_weights)
-            output_b = self._model.build_forward_pass(input_b)
+            output_b = self._model.build_forward_pass(input_b, fast_weights)
             loss_b = self._model.build_loss(label_b, output_b)
-        return loss_a, loss_b
+        return loss_a, loss_b, fast_weights
 
     def _compute_metatrain(self):
         loss_a, losses_b, _ = self._sess.run(

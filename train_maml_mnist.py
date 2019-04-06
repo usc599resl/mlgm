@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 from tensorflow.keras import layers
+from mlgm.layers import Dropout
 
 from mlgm.algo import Maml
 from mlgm.sampler import MnistMetaSampler
@@ -16,11 +17,10 @@ def main():
         test_digits=list(range(7, 10)),
         num_classes_per_batch=3)
     with tf.Session() as sess:
-        # DO NOT USE Dropout as a layer:
-        # https://github.com/keras-team/keras/issues/9288
         model = Model([
             layers.Flatten(),
             layers.Dense(units=512, activation=tf.nn.relu),
+            Dropout(0.2),
             layers.Dense(units=10, activation=tf.nn.softmax)
         ], sess)
         maml = Maml(
@@ -28,7 +28,7 @@ def main():
             metasampler,
             sess,
             num_updates=3,
-            update_lr=0.1,
+            update_lr=0.05,
             pre_train_iterations=0,
             metatrain_iterations=1000)
         maml.train()

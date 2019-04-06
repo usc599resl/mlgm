@@ -33,7 +33,7 @@ import tensorflow as tf
 from data_generator import DataGenerator
 from maml import MAML
 from tensorflow.python.platform import flags
-import pdb
+import ipdb
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -66,8 +66,8 @@ flags.DEFINE_bool('stop_grad', False, 'if True, do not use second derivatives in
 ## Logging, saving, and testing options
 flags.DEFINE_bool('log', True, 'if false, do not log summaries, for debugging code.')
 flags.DEFINE_string('logdir', 'logs/omniglot5way/', 'directory for summaries and checkpoints.')
-flags.DEFINE_bool('resume', True, 'resume training if there is a model available')
-flags.DEFINE_bool('train', False, 'True to train, False to test.')
+flags.DEFINE_bool('resume', False, 'resume training if there is a model available')
+flags.DEFINE_bool('train', True, 'True to train, False to test.')
 flags.DEFINE_integer('test_iter', -1, 'iteration to load model (-1 for latest model)')
 flags.DEFINE_bool('test_set', True, 'Set to true to test on the the test set, False for the validation set.')
 flags.DEFINE_integer('train_update_batch_size', -1, 'number of examples used for gradient update during training (use if you want to test with a different number).')
@@ -94,7 +94,7 @@ def train(model, saver, sess, exp_string, data_generator, resume_itr=0):
 
         if (itr % SUMMARY_INTERVAL == 0 or itr % PRINT_INTERVAL == 0):
             input_tensors.extend([model.summ_op, model.total_loss1, model.total_losses2[FLAGS.num_updates-1]])
-        
+       
         result = sess.run(input_tensors, feed_dict)        
 
         if itr % SUMMARY_INTERVAL == 0:
@@ -136,13 +136,13 @@ def test(model, saver, sess, exp_string, data_generator, test_num_updates=None):
 
     metaval_accuracies = []
 
-    for _ in range(NUM_TEST_POINTS):
+   for _ in range(NUM_TEST_POINTS):
         if 'generate' not in dir(data_generator):
-            feed_dict = {}
+            feed_dict = {}         
             feed_dict = {model.meta_lr : 0.0}
-
-        result = sess.run([model.metaval_total_loss1] +  model.metaval_total_losses2, feed_dict)
-
+    
+        result = sess.run([model.metaval_total_loss1] +  model.metaval_total_losses2[FLAGS.num_updates-1], feed_dict)
+    
     sample_data_100 = model.inputa
     test_reconstruction(model.model, sample_data_100)
 
@@ -209,7 +209,7 @@ def main():
     model.summ_op = tf.summary.merge_all()
 
     saver = loader = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES), max_to_keep=10)
-
+    
     sess = tf.InteractiveSession()
 
     if FLAGS.train == False:
@@ -247,7 +247,7 @@ def main():
     tf.train.start_queue_runners()
 
     if FLAGS.resume or not FLAGS.train:
-        model_file = tf.train.latest_checkpoint(FLAGS.logdir + '/' + exp_string)
+        model_file = tf.train.latest_checkpoint(FLAGS.logdir + exp_string)
         if FLAGS.test_iter > 0:
             model_file = model_file[:model_file.index('model')] + 'model' + str(FLAGS.test_iter)
         if model_file:
@@ -255,7 +255,7 @@ def main():
             resume_itr = int(model_file[ind1+5:])
             print("Restoring model weights from " + model_file)
             saver.restore(sess, model_file)
-
+            
     if FLAGS.train:
         train(model, saver, sess, exp_string, data_generator, resume_itr)
     else:

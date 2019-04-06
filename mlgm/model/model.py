@@ -12,7 +12,7 @@ class Model:
                  sess,
                  param_in=None,
                  param_out=None,
-                 loss_fn=tf.losses.sparse_softmax_cross_entropy,
+                 loss_fn=tf.nn.softmax_cross_entropy_with_logits_v2,
                  optimizer_cls=tf.train.AdamOptimizer,
                  learning_rate=0.001,
                  model_name="model"):
@@ -48,6 +48,10 @@ class Model:
         self.build_apply_gradients(self._gradients_sym)
         self._acc = self.build_accuracy(self._y, self._out)
 
+    def get_variables(self):
+        return tf.get_collection(
+            tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model")
+
     def _set_tensors(self, layer, use_tensors):
         if isinstance(layer, tf.keras.layers.Dense):
             for i in range(len(layer.weights)):
@@ -77,18 +81,18 @@ class Model:
             return self._loss_fn(label_placeholder, model_out)
 
     def build_gradients(self, loss_sym, fast_params=None):
-        grads = []
-        params = []
+        grads = {}
+        params = {}
         if fast_params:
             for name, w in fast_params.items():
-                params.append(w)
-                grads.append(tf.gradients(loss_sym, w)[0])
+                params.update({name: w})
+                grads.update({name: tf.gradients(loss_sym, w)[0]})
         else:
             for param in tf.get_collection(
                     tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model"):
                 # TODO: remove hard coded scope
-                params.append(param)
-                grads.append(tf.gradients(loss_sym, param)[0])
+                params.update({param.name: param})
+                grads.update({param.name: tf.gradients(loss_sym, param)[0]})
         return grads, params
 
     def build_apply_gradients(self, gradients_sym):

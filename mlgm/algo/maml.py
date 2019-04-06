@@ -20,7 +20,7 @@ class Maml:
                  sess,
                  name="maml",
                  num_updates=1,
-                 alpha=0.9,
+                 update_lr=0.9,
                  beta=0.9,
                  pre_train_iterations=1000,
                  metatrain_iterations=1000):
@@ -28,7 +28,7 @@ class Maml:
         self._metasampler = metasampler
         self._sess = sess
         self._num_updates = num_updates
-        self._alpha = alpha
+        self._update_lr = update_lr
         self._beta = beta
         self._pre_train_itr = pre_train_iterations
         self._metatrain_itr = metatrain_iterations
@@ -54,10 +54,12 @@ class Maml:
                 f_w = None
                 for i in range(self._num_updates):
                     loss, loss_b, f_w = self._build_update(
-                        input_a, label_a, input_b, label_b, self._alpha, f_w)
+                        input_a, label_a, input_b, label_b,
+                        self._update_lr, f_w
+                    )
                     if loss_a is None:
-                        loss_a = loss
-                    losses_b.append(loss_b)
+                        loss_a = tf.math.reduce_mean(loss)
+                    losses_b.append(tf.math.reduce_mean(loss_b))
 
                 return loss_a, losses_b, acc
 
@@ -84,24 +86,27 @@ class Maml:
                       label_a,
                       input_b,
                       label_b,
-                      alpha,
+                      update_lr,
                       fast_weights=None):
-        values = [input_a, label_a, input_b, label_b, alpha]
+        values = [input_a, label_a, input_b, label_b, update_lr]
         loss_a = None
         loss_b = None
         with tf.variable_scope("update", values=values):
             output_a = self._model.build_forward_pass(input_a, fast_weights)
-            loss_a = self._model.build_loss(label_a, output_a)
+            label_a_oh = tf.one_hot(label_a, depth=10)
+            loss_a = self._model.build_loss(label_a_oh, output_a)
             grads, weights = self._model.build_gradients(
                 loss_a, fast_weights)
             with tf.variable_scope("fast_weights", values=[weights, grads]):
-                fast_weights = {
-                    w.name: w - alpha * g
+                new_fast_weights = {
+                    w: weights[w] - update_lr * grads[w]
                     for w, g in zip(weights, grads)
                 }
-            output_b = self._model.build_forward_pass(input_b, fast_weights)
-            loss_b = self._model.build_loss(label_b, output_b)
-        return loss_a, loss_b, fast_weights
+            output_b = self._model.build_forward_pass(
+                    input_b, new_fast_weights)
+            label_b_oh = tf.one_hot(label_b, depth=10)
+            loss_b = self._model.build_loss(label_b_oh, output_b)
+        return loss_a, loss_b, new_fast_weights
 
     def _compute_metatrain(self):
         loss_a, losses_b, _ = self._sess.run(

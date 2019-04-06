@@ -121,13 +121,17 @@ class Maml:
         self._sess.run(tf.global_variables_initializer())
         if restore_model_path:
             self._model.restore_model(restore_model_path)
+        self._metasampler.restart_dataset(self._sess)
         for i in range(self._pre_train_itr + self._metatrain_itr):
-            loss_a, losses_b = self._compute_metatrain()
-            loss_a = np.mean(loss_a)
-            losses_b = np.array(losses_b)
-            losses_b = np.mean(losses_b, axis=1)
-            self._logger.new_summary()
-            self._logger.add_value("loss_a", loss_a)
-            self._logger.add_value("loss_b/update_", losses_b.tolist())
-            self._logger.dump_summary(i)
+            try:
+                loss_a, losses_b = self._compute_metatrain()
+                loss_a = np.mean(loss_a)
+                losses_b = np.array(losses_b)
+                losses_b = np.mean(losses_b, axis=1)
+                self._logger.new_summary()
+                self._logger.add_value("loss_a", loss_a)
+                self._logger.add_value("loss_b/update_", losses_b.tolist())
+                self._logger.dump_summary(i)
+            except tf.errors.OutOfRangeError:
+                self._metasampler.restart_dataset(self._sess)
         self._logger.close()

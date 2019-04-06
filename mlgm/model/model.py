@@ -52,14 +52,18 @@ class Model:
         return tf.get_collection(
             tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model")
 
-    def _set_tensors(self, layer, use_tensors):
+    def _set_tensors(self, layer_in, layer, use_tensors):
         if isinstance(layer, tf.keras.layers.Dense):
-            for i in range(len(layer.weights)):
-                if layer.weights[i].name in use_tensors:
-                    if "kernel" in layer.weights[i].name:
-                        layer.kernel = use_tensors[layer.weights[i].name]
-                    elif "bias" in layer.weights[i].name:
-                        layer.bias = use_tensors[layer.weights[i].name]
+            if (layer.kernel.name in use_tensors) and (
+                    layer.bias.name in use_tensors):
+                w = use_tensors[layer.kernel.name]
+                b = use_tensors[layer.bias.name]
+                layer_out = layer.activation(tf.matmul(layer_in, w) + b)
+            else:
+                layer_out = layer(layer_in)
+        else:
+            layer_out = layer(layer_in)
+        return layer_out
 
     def build_forward_pass(self, input_tensor, use_tensors=None, name=None):
         layer_in = input_tensor
@@ -68,8 +72,9 @@ class Model:
                 name, default_name=self._name, values=[layer_in]):
             for layer in self._layers:
                 if use_tensors:
-                    self._set_tensors(layer, use_tensors)
-                layer_out = layer(layer_in)
+                    layer_out = self._set_tensors(layer_in, layer, use_tensors)
+                else:
+                    layer_out = layer(layer_in)
                 layer_in = layer_out
 
         return layer_out

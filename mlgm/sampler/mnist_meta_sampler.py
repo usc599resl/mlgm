@@ -48,11 +48,11 @@ class MnistMetaSampler(MetaSampler):
                                  self._num_classes_per_batch):
             task_ids = np.array([], dtype=np.int32)
             task_labels = np.array([], dtype=np.int32)
-            for label in task:
+            for i, label in enumerate(task):
                 label_ids = np.random.choice(
                     self._train_inputs_per_label[label], self._batch_size)
                 labels = np.empty(self._batch_size, dtype=np.int32)
-                labels.fill(label)
+                labels.fill(i)
                 task_labels = np.append(task_labels, labels)
                 task_ids = np.append(task_ids, label_ids)
             all_train_labels = np.append(all_train_labels, task_labels)

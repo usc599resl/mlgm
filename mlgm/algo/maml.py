@@ -50,22 +50,26 @@ class Maml:
 
                 # loss_a is only used for pre training
                 loss_a = None
+                acc_a = None
                 losses_b = []
+                accs_b = []
                 f_w = None
                 for i in range(self._num_updates):
-                    loss, loss_b, f_w = self._build_update(
-                        input_a, label_a, input_b, label_b,
-                        self._update_lr, f_w
-                    )
+                    loss, acc, loss_b, acc_b, f_w = self._build_update(
+                        input_a, label_a, input_b, label_b, self._update_lr,
+                        f_w)
                     if loss_a is None:
                         loss_a = tf.math.reduce_mean(loss)
+                        acc_a = acc
                     losses_b.append(tf.math.reduce_mean(loss_b))
+                    accs_b.append(acc_b)
 
-                return loss_a, losses_b, acc
+                return loss_a, acc_a, losses_b, accs_b
 
-            out_dtype = (tf.float64, [tf.float64] * self._num_updates,
-                         tf.float32)
-            self._loss_a, self._losses_b, self._acc = tf.map_fn(
+            out_dtype = (tf.float64, tf.float32,
+                         [tf.float64] * self._num_updates,
+                         [tf.float32] * self._num_updates)
+            self._loss_a, self._acc_a, self._losses_b, self._accs_b = tf.map_fn(
                 task_metalearn,
                 elems=(self._input_a, self._label_a, self._input_b,
                        self._label_b),
@@ -95,23 +99,26 @@ class Maml:
             output_a = self._model.build_forward_pass(input_a, fast_weights)
             label_a_oh = tf.one_hot(label_a, depth=10)
             loss_a = self._model.build_loss(label_a_oh, output_a)
-            grads, weights = self._model.build_gradients(
-                loss_a, fast_weights)
+            acc_a = self._model.build_accuracy(label_a, output_a)
+            grads, weights = self._model.build_gradients(loss_a, fast_weights)
             with tf.variable_scope("fast_weights", values=[weights, grads]):
                 new_fast_weights = {
                     w: weights[w] - update_lr * grads[w]
                     for w, g in zip(weights, grads)
                 }
-            output_b = self._model.build_forward_pass(
-                    input_b, new_fast_weights)
+            output_b = self._model.build_forward_pass(input_b,
+                                                      new_fast_weights)
             label_b_oh = tf.one_hot(label_b, depth=10)
             loss_b = self._model.build_loss(label_b_oh, output_b)
-        return loss_a, loss_b, new_fast_weights
+            acc_b = self._model.build_accuracy(label_b, output_b)
+        return loss_a, acc_a, loss_b, acc_b, new_fast_weights
 
     def _compute_metatrain(self):
-        loss_a, losses_b, _ = self._sess.run(
-            [self._loss_a, self._losses_b, self._metatrain_op])
-        return loss_a, losses_b
+        loss_a, acc_a, losses_b, accs_b, _ = self._sess.run([
+            self._loss_a, self._acc_a, self._losses_b, self._accs_b,
+            self._metatrain_op
+        ])
+        return loss_a, acc_a, losses_b, accs_b
 
     def _compute_accuracy(self, input_vals, labels):
         feed_dict = {self._input_a: input_vals, self._label_a: labels}
@@ -124,13 +131,17 @@ class Maml:
         self._metasampler.restart_dataset(self._sess)
         for i in range(self._pre_train_itr + self._metatrain_itr):
             try:
-                loss_a, losses_b = self._compute_metatrain()
+                loss_a, acc_a, losses_b, accs_b = self._compute_metatrain()
                 loss_a = np.mean(loss_a)
+                acc_a = np.mean(acc_a)
                 losses_b = np.array(losses_b)
                 losses_b = np.mean(losses_b, axis=1)
+                accs_b = np.array(accs_b).mean(axis=1)
                 self._logger.new_summary()
                 self._logger.add_value("loss_a", loss_a)
                 self._logger.add_value("loss_b/update_", losses_b.tolist())
+                self._logger.add_value("acc_a", acc_a)
+                self._logger.add_value("acc_b/update_", accs_b.tolist())
                 self._logger.dump_summary(i)
             except tf.errors.OutOfRangeError:
                 self._metasampler.restart_dataset(self._sess)

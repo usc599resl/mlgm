@@ -6,12 +6,13 @@ from tensorflow import summary as summ
 
 
 class Logger:
-    def __init__(self, exp_name, graph=None):
+    def __init__(self, exp_name, graph=None, std_out_period=50):
         self._log_path = "data/" + exp_name + "_" + datetime.now().strftime(
             "%H_%M_%m_%d_%y")
         self._writer = summ.FileWriter(self._log_path, graph)
         self._summary_mrg = None
         self._writer.flush()
+        self._std_out_period = std_out_period
 
     def new_summary(self):
         self._summary = tf.Summary()
@@ -37,12 +38,13 @@ class Logger:
     def dump_summary(self, itr):
         self._writer.add_summary(self._summary, itr)
         self._writer.flush()
-        print("--------------------------------------------------")
-        print("exp_name: {}".format(self._log_path))
-        print("itr: {}".format(itr))
-        for k, v in self._std_out.items():
-            print("{}: {}".format(k, v))
-        print("--------------------------------------------------")
+        if not (itr % self._std_out_period) and itr > 0:
+            print("--------------------------------------------------")
+            print("exp_name: {}".format(self._log_path))
+            print("itr: {}".format(itr))
+            for k, v in self._std_out.items():
+                print("{}: {}".format(k, v))
+            print("--------------------------------------------------")
 
     def close(self):
         self._writer.close()

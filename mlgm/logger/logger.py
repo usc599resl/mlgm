@@ -7,8 +7,8 @@ from tensorflow import summary as summ
 
 class Logger:
     def __init__(self, exp_name, graph=None, std_out_period=50):
-        self._log_path = "data/" + exp_name + "_" + datetime.now().strftime(
-            "%H_%M_%m_%d_%y")
+        self._log_path = ("data/" + exp_name + "/" + exp_name + "_"
+                + datetime.now().strftime("%H_%M_%m_%d_%y"))
         self._writer = summ.FileWriter(self._log_path, graph)
         self._summary_mrg = None
         self._writer.flush()

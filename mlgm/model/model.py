@@ -50,7 +50,7 @@ class Model:
 
     def get_variables(self):
         return tf.get_collection(
-            tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model")
+            tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/")
 
     def _set_tensors(self, layer_in, layer, use_tensors):
         if isinstance(layer, tf.keras.layers.Dense):
@@ -79,11 +79,11 @@ class Model:
 
         return layer_out
 
-    def build_loss(self, label_placeholder, model_out, name=None):
+    def build_loss(self, label, model_out, name=None):
         if not name:
             name = self._name + "_loss"
-        with tf.variable_scope(name, values=[label_placeholder, model_out]):
-            return self._loss_fn(label_placeholder, model_out)
+        with tf.variable_scope(name, values=[label, model_out]):
+            return self._loss_fn(label, model_out)
 
     def build_gradients(self, loss_sym, fast_params=None):
         grads = {}
@@ -94,7 +94,7 @@ class Model:
                 grads.update({name: tf.gradients(loss_sym, w)[0]})
         else:
             for param in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/model"):
+                    tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/"):
                 # TODO: remove hard coded scope
                 params.update({param.name: param})
                 grads.update({param.name: tf.gradients(loss_sym, param)[0]})

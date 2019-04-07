@@ -3,7 +3,6 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from mlgm.layers import Dropout
 from mlgm.logger import Logger
 from mlgm.model import Vae
 from mlgm.sampler import MnistMetaSampler

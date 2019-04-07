@@ -18,17 +18,21 @@ class Maml:
                  model,
                  metasampler,
                  sess,
+                 train_vae=False,
                  name="maml",
                  num_updates=1,
                  update_lr=0.9,
+                 meta_lr=0.9,
                  beta=0.9,
                  pre_train_iterations=1000,
                  metatrain_iterations=1000):
         self._model = model
         self._metasampler = metasampler
         self._sess = sess
+        self._train_vae = train_vae
         self._num_updates = num_updates
         self._update_lr = update_lr
+        self._meta_lr = meta_lr
         self._beta = beta
         self._pre_train_itr = pre_train_iterations
         self._metatrain_itr = metatrain_iterations
@@ -66,13 +70,18 @@ class Maml:
 
                 return loss_a, acc_a, losses_b, accs_b
 
-            out_dtype = (tf.float64, tf.float32,
+            out_dtype = (tf.float64, tf.float64,
                          [tf.float64] * self._num_updates,
-                         [tf.float32] * self._num_updates)
+                         [tf.float64] * self._num_updates)
+            if self._train_vae:
+                elems = (self._input_a, self._input_a, self._input_b,
+                         self._input_b)
+            else:
+                elems = (self._input_a, self._label_a, self._input_b,
+                         self._label_b)
             self._loss_a, self._acc_a, self._losses_b, self._accs_b = tf.map_fn(
                 task_metalearn,
-                elems=(self._input_a, self._label_a, self._input_b,
-                       self._label_b),
+                elems=elems,
                 dtype=out_dtype,
                 parallel_iterations=self._metasampler.meta_batch_size)
 
@@ -82,8 +91,9 @@ class Maml:
 
             if self._metatrain_itr > 0:
                 with tf.variable_scope("metatrain", values=[self._losses_b]):
-                    self._metatrain_op = tf.train.AdamOptimizer().minimize(
-                        self._losses_b[self._num_updates - 1])
+                    self._metatrain_op = tf.train.AdamOptimizer(
+                        self._meta_lr).minimize(
+                            self._losses_b[self._num_updates - 1])
 
     def _build_update(self,
                       input_a,
@@ -97,8 +107,11 @@ class Maml:
         loss_b = None
         with tf.variable_scope("update", values=values):
             output_a = self._model.build_forward_pass(input_a, fast_weights)
-            label_a_oh = tf.one_hot(label_a, depth=10)
-            loss_a = self._model.build_loss(label_a_oh, output_a)
+            if self._train_vae:
+                loss_a = self._model.build_loss(label_a, output_a)
+            else:
+                label_a_oh = tf.one_hot(label_a, depth=10)
+                loss_a = self._model.build_loss(label_a_oh, output_a)
             acc_a = self._model.build_accuracy(label_a, output_a)
             grads, weights = self._model.build_gradients(loss_a, fast_weights)
             with tf.variable_scope("fast_weights", values=[weights, grads]):
@@ -108,8 +121,11 @@ class Maml:
                 }
             output_b = self._model.build_forward_pass(input_b,
                                                       new_fast_weights)
-            label_b_oh = tf.one_hot(label_b, depth=10)
-            loss_b = self._model.build_loss(label_b_oh, output_b)
+            if self._train_vae:
+                loss_b = self._model.build_loss(label_b, output_b)
+            else:
+                label_b_oh = tf.one_hot(label_b, depth=10)
+                loss_b = self._model.build_loss(label_b_oh, output_b)
             acc_b = self._model.build_accuracy(label_b, output_b)
         return loss_a, acc_a, loss_b, acc_b, new_fast_weights
 
@@ -143,6 +159,8 @@ class Maml:
                 self._logger.add_value("acc_a", acc_a)
                 self._logger.add_value("acc_b/update_", accs_b.tolist())
                 self._logger.dump_summary(i)
+                self._logger.save_tf_variables(self._model.get_variables(), i,
+                                               self._sess)
             except tf.errors.OutOfRangeError:
                 self._metasampler.restart_dataset(self._sess)
         self._logger.close()

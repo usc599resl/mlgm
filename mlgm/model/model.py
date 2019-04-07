@@ -50,15 +50,23 @@ class Model:
 
     def get_variables(self):
         return tf.get_collection(
-            tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/")
+            tf.GraphKeys.TRAINABLE_VARIABLES, scope="map/while/")
 
     def _set_tensors(self, layer_in, layer, use_tensors):
-        if isinstance(layer, tf.keras.layers.Dense):
+        supported_types = [
+            tf.keras.layers.Dense, tf.keras.layers.Conv2D,
+            tf.keras.layers.Conv2DTranspose
+        ]
+        if type(layer) in supported_types:
             if (layer.kernel.name in use_tensors) and (
                     layer.bias.name in use_tensors):
-                w = use_tensors[layer.kernel.name]
-                b = use_tensors[layer.bias.name]
-                layer_out = layer.activation(tf.matmul(layer_in, w) + b)
+                kernel_var = layer.kernel
+                bias_var = layer.bias
+                layer.kernel = use_tensors[layer.kernel.name]
+                layer.bias = use_tensors[layer.bias.name]
+                layer_out = layer(layer_in)
+                layer.kernel = kernel_var
+                layer.bias = bias_var
             else:
                 layer_out = layer(layer_in)
         else:
@@ -145,7 +153,7 @@ class Model:
     def _set_saver(self):
         var_list = [
             var for var in tf.get_collection(
-                tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name)
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope="map/while/")
         ]
         self._saver = tf.train.Saver(var_list)
 

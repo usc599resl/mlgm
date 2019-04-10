@@ -2,54 +2,51 @@ import tensorflow as tf
 import numpy as np
 import pickle
 from utils import *
-
+import h5py
+import os
 
 class GAN:
 
-    def __init__(self, dataset, batch_size=64, noise_dim=64, epochs=10, learning_rate=2e-4):
+    def __init__(self, dataset, batch_size=64, noise_dim=100, epochs=10, learning_rate=1e-4):
         self._dataset = dataset
         self._batch_size = batch_size
         self._noise_dim = noise_dim
         self._learning_rate = learning_rate
-        self._epochs = epochs        
+        self._epochs = epochs 
         self._build_model()
+        self._saver = tf.train.Saver(max_to_keep=100)
+        self._log_dir = "./logs/gan/"
 
     def train(self, session):
         session.run(tf.global_variables_initializer())
         test_noise = np.random.uniform(0., 1., [self._batch_size, self._noise_dim])
+        max_iterations = 100000  
 
-        for epoch in range(self._epochs):
-            num_batches = self._dataset.num_trains // self._batch_size
+        if not os.path.exists(self._log_dir):
+            os.makedirs(self._log_dir)                             
 
-            for _ in range(num_batches):             
-                train_d = True
-                train_g = True
+        for i in range(max_iterations):           
+            batch = self._dataset._next_batch(self._batch_size) 
+            noise = np.random.uniform(0, 1, [self._batch_size, self._noise_dim])
 
-                batch = self._dataset._next_batch(self._batch_size) 
-                noise = np.random.uniform(0, 1, [self._batch_size, self._noise_dim])
-
+            feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
+            d_loss, g_loss = session.run([self._d_loss, self._g_loss], feed_dict=feed_dict)
+            
+            if (i % 6) == 0:
                 feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
-                d_loss, g_loss = session.run([self._d_loss, self._g_loss], feed_dict=feed_dict)
-                
-                if g_loss * 1.5 < d_loss:
-                    train_g = False                
-                if d_loss * 2 < g_loss:
-                    train_d = False                                           
+                session.run([self._d_opt], feed_dict=feed_dict)                
+            else:
+                feed_dict = { self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
+                session.run([self._g_opt], feed_dict=feed_dict)                                             
 
-                # Train Discriminator
-                if train_d:
-                    feed_dict = { self._real_input: batch, self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
-                    session.run([self._d_opt], feed_dict=feed_dict)
-
-                # Train Generator
-                if train_g:
-                    feed_dict = { self._noise: noise, self._is_train: True, self._keep_prob: 0.6 }
-                    session.run([self._g_opt], feed_dict=feed_dict)                
-                        
-            print("Epoch: {0}, d_loss: {1}, g_loss: {2}".format(epoch, d_loss, g_loss))                
-            feed_dict = {self._noise: test_noise, self._is_train: False, self._keep_prob: 1.0}
-            samples = session.run(self._g_sample, feed_dict=feed_dict)
-            show_images(samples)
+            if i % 1000 == 0:                                      
+                print("Itr: {0}, d_loss: {1}, g_loss: {2}".format(i, d_loss, g_loss))                
+                feed_dict = {self._noise: test_noise, self._is_train: False, self._keep_prob: 1.0}
+                image = session.run(self._g_sample, feed_dict=feed_dict)
+                self._saver.save(session, self._log_dir)
+                f = h5py.File(os.path.join(self._log_dir, 'gan_'+str(i)+'.hy'), 'w')
+                f['image'] = image
+                f.close()
 
     def _build_model(self):
         self._init_variables()
@@ -70,7 +67,7 @@ class GAN:
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            self._d_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._d_loss, var_list=d_vars)
+            self._d_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate*0.5, beta1=0.5).minimize(self._d_loss, var_list=d_vars)
             self._g_opt = tf.train.AdamOptimizer(learning_rate=self._learning_rate, beta1=0.5).minimize(self._g_loss, var_list=g_vars)             
 
 

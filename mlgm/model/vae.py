@@ -24,7 +24,7 @@ class Vae(Model):
         return mean, logvar
 
     def _reparameterize(self, mean, logvar):
-        eps = tf.random.normal(shape=mean.shape, dtype=tf.dtypes.float64)
+        eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * .5) + mean
 
     def _decode(self, z, use_tensors=None):
@@ -50,17 +50,12 @@ class Vae(Model):
         return self._decode(self._latent_sym, use_tensors)
 
     def _log_normal_pdf(self, sample, mean, logvar, raxis=1):
-        log2pi = tf.cast(tf.math.log(2. * np.pi), dtype=tf.float64)
-        mean = tf.cast(sample, dtype=tf.float64)
-        logvar = tf.cast(logvar, dtype=tf.float64)
+        log2pi = tf.math.log(2. * np.pi)
         return tf.reduce_sum(
-            np.float64(-.5) * (
-                (sample - mean)**2. * tf.exp(-logvar) + logvar + log2pi),
+            -.5 * ((sample - mean)**2. * tf.exp(-logvar) + logvar + log2pi),
             axis=raxis)
 
     def build_loss(self, labels, logits):
-        # TODO: move reshaping, it's only useful to add the channel for MNIST
-        labels = tf.reshape(labels, labels.get_shape().concatenate(1))
         cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
             logits=logits, labels=labels)
         logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
@@ -70,13 +65,7 @@ class Vae(Model):
         return -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
     def build_accuracy(self, labels, logits, name=None):
-        # TODO: move reshaping, it's only useful to add the channel for MNIST
-        with tf.variable_scope(
-                name,
-                default_name=self._name + "_accuracy",
-                values=[labels, logits]):
-            labels = tf.reshape(labels, labels.get_shape().concatenate(1))
-            return tf.reduce_mean(tf.abs(labels - logits))
+        return 0.
 
     def get_variables(self):
         all_vars = []
@@ -89,13 +78,14 @@ class Vae(Model):
         params = {}
         if not fast_params:
             enc_grads, enc_params = self._encoder.build_gradients(
-                    loss_sym, fast_params)
+                loss_sym, fast_params)
             dec_grads, dec_params = self._decoder.build_gradients(
-                    loss_sym, fast_params)
+                loss_sym, fast_params)
             grads.update(enc_grads)
             grads.update(dec_grads)
-            params.update(enc_grads)
-            params.update(dec_grads)
+            params.update(enc_params)
+            params.update(dec_params)
         else:
-            grads, params = super(Vae, self).build_gradients(loss_sym, fast_params)
+            grads, params = super(Vae, self).build_gradients(
+                loss_sym, fast_params)
         return grads, params

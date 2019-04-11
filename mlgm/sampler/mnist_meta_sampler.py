@@ -9,8 +9,16 @@ from mlgm.sampler import MetaSampler
 
 
 class MnistMetaSampler(MetaSampler):
-    def __init__(self, batch_size, meta_batch_size, train_digits, test_digits,
-                 num_classes_per_batch):
+    def __init__(
+            self,
+            batch_size,
+            meta_batch_size,
+            train_digits,
+            test_digits,
+            num_classes_per_batch,
+            one_hot_labels=False,
+            same_input_and_label=False,
+    ):
         assert train_digits is None or (
             type(train_digits) == list
             and [0 <= train_digit <= 9 for train_digit in train_digits])
@@ -20,6 +28,8 @@ class MnistMetaSampler(MetaSampler):
         pass
         self._train_digits = list(set(train_digits))
         self._test_digits = list(set(test_digits))
+        self._one_hot_labels = one_hot_labels
+        self._same_input_and_label = same_input_and_label
         (train_inputs, train_labels), (test_inputs,
                                        test_labels) = mnist.load_data()
 
@@ -59,10 +69,13 @@ class MnistMetaSampler(MetaSampler):
             all_train_ids = np.append(all_train_ids, task_ids)
             num_tasks += 1
         all_train_ids_sym = tf.convert_to_tensor(all_train_ids)
-        train_inputs_sym = tf.convert_to_tensor(self._train_inputs)
+        train_inputs_sym = tf.convert_to_tensor(
+            self._train_inputs, dtype=tf.float32)
         all_train_inputs = tf.gather(train_inputs_sym, all_train_ids_sym)
         all_train_labels = tf.convert_to_tensor(
-            all_train_labels, dtype=tf.dtypes.int64)
+            all_train_labels, dtype=tf.dtypes.int32)
+        if self._one_hot_labels:
+            all_train_labels = tf.one_hot(all_train_labels, depth=10)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_train_inputs,
                                                           all_train_labels))
         return dataset_sym, num_tasks
@@ -73,6 +86,12 @@ class MnistMetaSampler(MetaSampler):
                            [-1, slice_size, -1, -1])
         input_b = tf.slice(self._input_batches, [0, slice_size, 0, 0],
                            [-1, -1, -1, -1])
-        label_a = tf.slice(self._label_batches, [0, 0], [-1, slice_size])
-        label_b = tf.slice(self._label_batches, [0, slice_size], [-1, -1])
+        if self._same_input_and_label:
+            label_a = tf.reshape(input_a, input_a.get_shape().concatenate(1))
+            label_b = tf.reshape(input_b, input_b.get_shape().concatenate(1))
+        else:
+            label_a = tf.slice(self._label_batches, [0, 0, 0],
+                               [-1, slice_size, -1])
+            label_b = tf.slice(self._label_batches, [0, slice_size, 0],
+                               [-1, -1, -1])
         return input_a, label_a, input_b, label_b

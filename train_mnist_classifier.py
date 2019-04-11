@@ -8,7 +8,7 @@ from mlgm.logger import Logger
 from mlgm.sampler import MnistSampler
 
 with tf.Session() as sess:
-    logger = Logger("mnist_classifier", save_period=1)
+    logger = Logger("mnist_classifier", std_out_period=1, save_period=1)
     model = Model([
         layers.Flatten(),
         layers.Dense(units=512, activation=tf.nn.relu),
@@ -39,5 +39,4 @@ with tf.Session() as sess:
         logger.new_summary()
         logger.add_value("accuracy", it_acc)
         logger.dump_summary(itr)
-        print("Epoch {}, accuracy {}".format(itr, it_acc))
     logger.save_tf_variables(model.get_variables(), itr, sess)

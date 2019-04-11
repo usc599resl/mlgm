@@ -103,7 +103,7 @@ class Model:
 
     def build_apply_gradients(self, gradients_sym, weights_sym):
         grad_var = [(gradients_sym[w_name], weights_sym[w_name])
-                for w_name in weights_sym]
+                    for w_name in weights_sym]
         self._optimize = self._optimizer.apply_gradients(grad_var)
 
     def build_accuracy(self, labels, output, name=None):
@@ -111,7 +111,8 @@ class Model:
                 name,
                 default_name=self._name + "_accuracy",
                 values=[labels, output]):
-            _, acc = tf.metrics.accuracy(labels, output)
+            _, acc = tf.metrics.accuracy(
+                tf.argmax(labels, axis=1), tf.argmax(output, axis=1))
             return acc
 
     def optimize(self, x, y):

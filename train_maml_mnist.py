@@ -15,7 +15,8 @@ def main():
         meta_batch_size=4,
         train_digits=list(range(7)),
         test_digits=list(range(7, 10)),
-        num_classes_per_batch=3)
+        num_classes_per_batch=3,
+        one_hot_labels=True)
     with tf.Session() as sess:
         model = Model([
             layers.Flatten(),
@@ -28,8 +29,8 @@ def main():
             metasampler,
             sess,
             num_updates=3,
-            update_lr=0.05,
-            pre_train_iterations=0,
+            update_lr=0.01,
+            meta_lr=0.0005,
             metatrain_iterations=1000)
         maml.train()
 

@@ -15,7 +15,8 @@ def main():
         meta_batch_size=7,
         train_digits=list(range(7)),
         test_digits=list(range(7, 10)),
-        num_classes_per_batch=1)
+        num_classes_per_batch=1,
+        same_input_and_label=True)
     with tf.Session() as sess:
         latent_dim = 8
         model = Vae(
@@ -60,11 +61,10 @@ def main():
             model,
             metasampler,
             sess,
-            train_vae=True,
+            compute_acc=False,
             num_updates=5,
             update_lr=0.001,
             meta_lr=0.0001,
-            pre_train_iterations=0,
             metatrain_iterations=1000,
             name="maml_vae")
         maml.train()

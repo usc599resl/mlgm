@@ -18,23 +18,19 @@ class Maml:
                  model,
                  metasampler,
                  sess,
-                 train_vae=False,
+                 compute_acc=True,
                  name="maml",
                  num_updates=1,
-                 update_lr=0.9,
-                 meta_lr=0.9,
-                 beta=0.9,
-                 pre_train_iterations=1000,
+                 update_lr=0.0001,
+                 meta_lr=0.0001,
                  metatrain_iterations=1000):
         self._model = model
         self._metasampler = metasampler
         self._sess = sess
-        self._train_vae = train_vae
+        self._compute_acc = compute_acc
         self._num_updates = num_updates
         self._update_lr = update_lr
         self._meta_lr = meta_lr
-        self._beta = beta
-        self._pre_train_itr = pre_train_iterations
         self._metatrain_itr = metatrain_iterations
         self._logger = Logger(name)
         self._build()
@@ -42,17 +38,14 @@ class Maml:
 
     def _build(self):
         with self._sess.graph.as_default():
-            # Algorithm Inputs
             (self._input_a, self._label_a, self._input_b,
              self._label_b) = self._metasampler.build_inputs_and_labels()
 
-            # This model builds the weights and the accuracy
             def task_metalearn(args):
                 input_a, label_a, input_b, label_b = args
                 output = self._model.build_forward_pass(input_a)
                 acc = self._model.build_accuracy(label_a, output)
 
-                # loss_a is only used for pre training
                 loss_a = None
                 acc_a = None
                 losses_b = []
@@ -70,30 +63,22 @@ class Maml:
 
                 return loss_a, acc_a, losses_b, accs_b
 
-            out_dtype = (tf.float64, tf.float64,
-                         [tf.float64] * self._num_updates,
-                         [tf.float64] * self._num_updates)
-            if self._train_vae:
-                elems = (self._input_a, self._input_a, self._input_b,
-                         self._input_b)
-            else:
-                elems = (self._input_a, self._label_a, self._input_b,
-                         self._label_b)
-            self._loss_a, self._acc_a, self._losses_b, self._accs_b = tf.map_fn(
-                task_metalearn,
-                elems=elems,
-                dtype=out_dtype,
-                parallel_iterations=self._metasampler.meta_batch_size)
+            out_dtype = (tf.float32, tf.float32,
+                         [tf.float32] * self._num_updates,
+                         [tf.float32] * self._num_updates)
+            elems = (self._input_a, self._label_a, self._input_b,
+                     self._label_b)
+            (self._loss_a, self._acc_a, self._losses_b,
+             self._accs_b) = tf.map_fn(
+                 task_metalearn,
+                 elems=elems,
+                 dtype=out_dtype,
+                 parallel_iterations=self._metasampler.meta_batch_size)
 
-            with tf.variable_scope("pretrain", values=[self._loss_a]):
-                self._pretrain_op = tf.train.AdamOptimizer().minimize(
-                    self._loss_a)
-
-            if self._metatrain_itr > 0:
-                with tf.variable_scope("metatrain", values=[self._losses_b]):
-                    self._metatrain_op = tf.train.AdamOptimizer(
-                        self._meta_lr).minimize(
-                            self._losses_b[self._num_updates - 1])
+            with tf.variable_scope("metatrain", values=[self._losses_b]):
+                self._metatrain_op = tf.train.AdamOptimizer(
+                    self._meta_lr).minimize(
+                        self._losses_b[self._num_updates - 1])
 
     def _build_update(self,
                       input_a,
@@ -107,60 +92,58 @@ class Maml:
         loss_b = None
         with tf.variable_scope("update", values=values):
             output_a = self._model.build_forward_pass(input_a, fast_weights)
-            if self._train_vae:
-                loss_a = self._model.build_loss(label_a, output_a)
-            else:
-                label_a_oh = tf.one_hot(label_a, depth=10)
-                loss_a = self._model.build_loss(label_a_oh, output_a)
+            loss_a = self._model.build_loss(label_a, output_a)
             acc_a = self._model.build_accuracy(label_a, output_a)
             grads, weights = self._model.build_gradients(loss_a, fast_weights)
             with tf.variable_scope("fast_weights", values=[weights, grads]):
                 new_fast_weights = {
                     w: weights[w] - update_lr * grads[w]
-                    for w, g in zip(weights, grads)
+                    for w in weights
                 }
             output_b = self._model.build_forward_pass(input_b,
                                                       new_fast_weights)
-            if self._train_vae:
-                loss_b = self._model.build_loss(label_b, output_b)
-            else:
-                label_b_oh = tf.one_hot(label_b, depth=10)
-                loss_b = self._model.build_loss(label_b_oh, output_b)
+            loss_b = self._model.build_loss(label_b, output_b)
             acc_b = self._model.build_accuracy(label_b, output_b)
         return loss_a, acc_a, loss_b, acc_b, new_fast_weights
 
-    def _compute_metatrain(self):
+    def _compute_metatrain_and_acc(self):
         loss_a, acc_a, losses_b, accs_b, _ = self._sess.run([
             self._loss_a, self._acc_a, self._losses_b, self._accs_b,
             self._metatrain_op
         ])
         return loss_a, acc_a, losses_b, accs_b
 
-    def _compute_accuracy(self, input_vals, labels):
-        feed_dict = {self._input_a: input_vals, self._label_a: labels}
-        return self._sess.run(self._acc, feed_dict=feed_dict)
+    def _compute_metatrain(self):
+        loss_a, losses_b, _ = self._sess.run(
+            [self._loss_a, self._losses_b, self._metatrain_op])
+        return loss_a, losses_b
 
     def train(self, restore_model_path=None):
         self._sess.run(tf.global_variables_initializer())
+        self._sess.run(tf.local_variables_initializer())
         if restore_model_path:
             self._model.restore_model(restore_model_path)
         self._metasampler.restart_dataset(self._sess)
-        for i in range(self._pre_train_itr + self._metatrain_itr):
+        for i in range(self._metatrain_itr):
             try:
-                loss_a, acc_a, losses_b, accs_b = self._compute_metatrain()
+                if self._compute_acc:
+                    (loss_a, acc_a, losses_b,
+                     accs_b) = self._compute_metatrain_and_acc()
+                    acc_a = np.mean(acc_a)
+                    accs_b = np.array(accs_b).mean(axis=1)
+                else:
+                    loss_a, losses_b = self._compute_metatrain()
                 loss_a = np.mean(loss_a)
-                acc_a = np.mean(acc_a)
-                losses_b = np.array(losses_b)
-                losses_b = np.mean(losses_b, axis=1)
-                accs_b = np.array(accs_b).mean(axis=1)
+                losses_b = np.array(losses_b).mean(axis=1)
                 self._logger.new_summary()
                 self._logger.add_value("loss_a", loss_a)
                 self._logger.add_value("loss_b/update_", losses_b.tolist())
-                self._logger.add_value("acc_a", acc_a)
-                self._logger.add_value("acc_b/update_", accs_b.tolist())
+                if self._compute_acc:
+                    self._logger.add_value("acc_a", acc_a)
+                    self._logger.add_value("acc_b/update_", accs_b.tolist())
                 self._logger.dump_summary(i)
-                self._logger.save_tf_variables(self._model.get_variables(), i,
-                                               self._sess)
+                # self._logger.save_tf_variables(self._model.get_variables(), i,
+                #                                self._sess)
             except tf.errors.OutOfRangeError:
                 self._metasampler.restart_dataset(self._sess)
         self._logger.close()

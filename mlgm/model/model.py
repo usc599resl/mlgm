@@ -16,7 +16,6 @@ class Model:
                  optimizer_cls=tf.train.AdamOptimizer,
                  learning_rate=0.001,
                  model_name="model"):
-        assert len(layers) > 0 and [type(layer) is Layer for layer in layers]
         self._sess = sess
         self._x = None
         self._y = None
@@ -24,29 +23,20 @@ class Model:
         self._param_in = param_in
         self._param_out = param_out
         self._layers = layers
-        self._params = None
-        self._grads = None
         self._loss_fn = loss_fn
-        self._loss_sym = None
         self._acc = None
-        self._optimizer_cls = optimizer_cls
-        self._learning_rate = learning_rate
-        self._optimizer = self._optimizer_cls(self._learning_rate)
+        self._optimizer = optimizer_cls(learning_rate)
         self._optimize = None
         self._name = model_name
-        self._saver = None
         self._name_scope = None
-        self._gradients_sym = []
-        self._weights_sym = []
 
     def build(self):
         self._x = tf.placeholder(**self._param_in)
         self._y = tf.placeholder(**self._param_out)
         self._out = self.build_forward_pass(self._x)
-        self._loss_sym = self.build_loss(self._y, self._out)
-        self._gradients_sym, self._weights_sym = self.build_compute_gradients(
-            self._loss_sym)
-        self.build_apply_gradients(self._gradients_sym)
+        loss_sym = self.build_loss(self._y, self._out)
+        gradients_sym, weights_sym = self.build_gradients(loss_sym)
+        self.build_apply_gradients(gradients_sym, weights_sym)
         self._acc = self.build_accuracy(self._y, self._out)
 
     def get_variables(self):
@@ -111,8 +101,9 @@ class Model:
                 grads.update({param.name: tf.gradients(loss_sym, param)[0]})
         return grads, params
 
-    def build_apply_gradients(self, gradients_sym):
-        grad_var = [(g, w) for g, w in zip(gradients_sym, self._weights_sym)]
+    def build_apply_gradients(self, gradients_sym, weights_sym):
+        grad_var = [(gradients_sym[w_name], weights_sym[w_name])
+                for w_name in weights_sym]
         self._optimize = self._optimizer.apply_gradients(grad_var)
 
     def build_accuracy(self, labels, output, name=None):
@@ -120,30 +111,8 @@ class Model:
                 name,
                 default_name=self._name + "_accuracy",
                 values=[labels, output]):
-            y_pred = tf.math.argmax(output, axis=1)
-            return tf.reduce_mean(
-                tf.cast(tf.equal(y_pred, labels), tf.float32))
-
-    def assign_model_params(self, params, name=None):
-        if not name:
-            name = self._name + "_assign_params"
-        with tf.variable_scope(name, values=[params]):
-            for i in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name):
-                if i.name in params:
-                    i.assign(params[i.name])
-
-    @property
-    def loss_sym(self):
-        return self._loss_sym
-
-    @property
-    def weights_sym(self):
-        return self._loss_sym
-
-    def compute_params_and_grads(self, x, y):
-        feed_dict = {self._x: x, self._y: y}
-        return self._sess.run(self._loss_out, feed_dict=feed_dict)
+            _, acc = tf.metrics.accuracy(labels, output)
+            return acc
 
     def optimize(self, x, y):
         feed_dict = {self._x: x, self._y: y}
@@ -153,20 +122,10 @@ class Model:
         feed_dict = {self._x: x, self._y: y}
         return self._sess.run(self._acc, feed_dict=feed_dict)
 
-    def _set_saver(self):
+    def restore_model(self, save_path):
         var_list = [
             var for var in tf.get_collection(
                 tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
         ]
-        self._saver = tf.train.Saver(var_list)
-
-    def save_model(self):
-        self._set_saver()
-        model_path = "data/" + self._name + "_" + datetime.now().strftime(
-            "%H_%M_%m_%d_%y")
-        os.makedirs(model_path)
-        self._saver.save(self._sess, model_path + "/" + self._name)
-
-    def restore_model(self, save_path):
-        self._set_saver()
-        self._saver.restore(self._sess, save_path)
+        saver = tf.train.Saver(var_list)
+        saver.restore(self._sess, save_path)

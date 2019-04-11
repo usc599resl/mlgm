@@ -6,12 +6,14 @@ from tensorflow import summary as summ
 
 
 class Logger:
-    def __init__(self, exp_name, graph=None, std_out_period=50):
+    def __init__(self, exp_name, graph=None, std_out_period=50,
+            save_period=50):
         self._log_path = ("data/" + exp_name + "/" + exp_name + "_" +
                           datetime.now().strftime("%H_%M_%m_%d_%y"))
         self._writer = summ.FileWriter(self._log_path, graph)
         self._summary_mrg = None
         self._writer.flush()
+        self._save_period = save_period
         self._std_out_period = std_out_period
 
     def new_summary(self):
@@ -39,7 +41,7 @@ class Logger:
         return self._summary_mrg
 
     def save_tf_variables(self, var_list, itr, sess):
-        if not (itr % self._std_out_period) and itr > 0:
+        if not (itr % self._save_period) and itr > 0:
             saver = tf.train.Saver(var_list)
             saver.save(sess, self._log_path + "/itr_{}".format(itr))
 

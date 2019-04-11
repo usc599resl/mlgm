@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 
 class Sampler:
@@ -42,3 +43,15 @@ class Sampler:
 
     def get_test_set(self):
         return self._x_test, self._y_test
+
+    def build_input_placeholder(self, name=None, dtype=None):
+        if not dtype:
+            dtype = tf.as_dtype(self._x_train.dtype)
+        return tf.placeholder(
+            dtype, shape=(None, ) + self._x_train.shape[1:], name=name)
+
+    def build_label_placeholder(self, name=None, dtype=None):
+        if not dtype:
+            dtype = tf.as_dtype(self._y_train.dtype)
+        return tf.placeholder(
+            dtype, shape=(None, ) + self._y_train.shape[1:], name=name)

@@ -77,3 +77,25 @@ class Vae(Model):
                 values=[labels, logits]):
             labels = tf.reshape(labels, labels.get_shape().concatenate(1))
             return tf.reduce_mean(tf.abs(labels - logits))
+
+    def get_variables(self):
+        all_vars = []
+        all_vars.extend(self._encoder.get_variables())
+        all_vars.extend(self._decoder.get_variables())
+        return all_vars
+
+    def build_gradients(self, loss_sym, fast_params=None):
+        grads = {}
+        params = {}
+        if not fast_params:
+            enc_grads, enc_params = self._encoder.build_gradients(
+                    loss_sym, fast_params)
+            dec_grads, dec_params = self._decoder.build_gradients(
+                    loss_sym, fast_params)
+            grads.update(enc_grads)
+            grads.update(dec_grads)
+            params.update(enc_grads)
+            params.update(dec_grads)
+        else:
+            grads, params = super(Vae, self).build_gradients(loss_sym, fast_params)
+        return grads, params

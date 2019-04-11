@@ -35,6 +35,7 @@ class Model:
         self._optimize = None
         self._name = model_name
         self._saver = None
+        self._name_scope = None
         self._gradients_sym = []
         self._weights_sym = []
 
@@ -50,7 +51,7 @@ class Model:
 
     def get_variables(self):
         return tf.get_collection(
-            tf.GraphKeys.TRAINABLE_VARIABLES, scope="map/while/")
+            tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
 
     def _set_tensors(self, layer_in, layer, use_tensors):
         supported_types = [
@@ -77,7 +78,10 @@ class Model:
         layer_in = input_tensor
         # Model layers
         with tf.variable_scope(
-                name, default_name=self._name, values=[layer_in]):
+                name, default_name=self._name,
+                values=[layer_in]) as forward_scope:
+            if not self._name_scope:
+                self._name_scope = forward_scope._name_scope
             for layer in self._layers:
                 if use_tensors:
                     layer_out = self._set_tensors(layer_in, layer, use_tensors)
@@ -102,8 +106,7 @@ class Model:
                 grads.update({name: tf.gradients(loss_sym, w)[0]})
         else:
             for param in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope="map/while/"):
-                # TODO: remove hard coded scope
+                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name_scope):
                 params.update({param.name: param})
                 grads.update({param.name: tf.gradients(loss_sym, param)[0]})
         return grads, params
@@ -153,7 +156,7 @@ class Model:
     def _set_saver(self):
         var_list = [
             var for var in tf.get_collection(
-                tf.GraphKeys.TRAINABLE_VARIABLES, scope="map/while/")
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
         ]
         self._saver = tf.train.Saver(var_list)
 

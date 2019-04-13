@@ -8,13 +8,12 @@ from mlgm.algo import Maml
 from mlgm.sampler import MnistMetaSampler
 from mlgm.model import Vae
 
-
 def main():
     metasampler = MnistMetaSampler(
         batch_size=1,
         meta_batch_size=7,
         train_digits=list(range(7)),
-        test_digits=list(range(7, 10)),
+        test_digits=list(range(7, 10)),        
         num_classes_per_batch=1,
         same_input_and_label=True)
     with tf.Session() as sess:
@@ -57,6 +56,8 @@ def main():
             ],
             latent_dim=latent_dim,
             sess=sess)
+      
+
         maml = Maml(
             model,
             metasampler,
@@ -65,10 +66,22 @@ def main():
             num_updates=5,
             update_lr=0.001,
             meta_lr=0.0001,
-            metatrain_iterations=1000,
             name="maml_vae")
-        maml.train()
-
+         
+        maml.train(
+            train_itr=2000, 
+            test_itr=1,
+            test_interval=100,
+            restore_model_path=None
+        )
+        
+        '''
+        maml.test(
+            test_itr=1,
+            restore_model_path='./data/maml_vae/maml_vae_20_53_04_14_19/itr_950'
+        )
+        '''
+        
 
 if __name__ == "__main__":
     main()

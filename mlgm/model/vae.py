@@ -89,3 +89,10 @@ class Vae(Model):
             grads, params = super(Vae, self).build_gradients(
                 loss_sym, fast_params)
         return grads, params
+
+    def restore_model(self, save_path):
+        var_list = [
+            var for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+        ]
+        saver = tf.train.Saver(var_list)
+        saver.restore(self._sess, save_path)

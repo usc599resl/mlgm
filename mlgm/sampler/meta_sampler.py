@@ -3,33 +3,24 @@ import tensorflow as tf
 
 
 class MetaSampler:
-    def __init__(self, batch_size, meta_batch_size, train_classes,
-                 test_classes, num_classes_per_batch, train_inputs,
-                 train_labels, test_inputs, test_labels):
-        assert num_classes_per_batch <= len(test_classes)
+    def __init__(self, batch_size, meta_batch_size, inputs, num_classes_per_batch):
         # Duplicate the batch size since we need to sample twice from the
         # same distribution
         self._batch_size = batch_size * 2
         self._meta_batch_size = meta_batch_size
-        self._train_classes = train_classes
-        self._test_classes = test_classes
         self._num_classes_per_batch = num_classes_per_batch
         self._distribution = None
         self._meta_batch_itr = None
-        self._train_ids_per_label = {}
-        self._test_ids_per_label = {}
-        self._train_inputs = train_inputs
-        self._train_labels = train_labels
-        self._test_inputs = test_inputs
-        self._test_labels = test_labels
-        self._dataset_sym, self._num_tasks = self._gen_train_metadata()
+        self._inputs = inputs
+        self._ids_per_label = {}        
+        self._dataset_sym, self._num_tasks = self._gen_metadata()
         self._input_batches, self._label_batches = self._gen_metabatch()
 
     @property
     def meta_batch_size(self):
         return self._meta_batch_size
 
-    def _gen_train_metadata(self):
+    def _gen_metadata(self):
         raise NotImplementedError
 
     def restart_dataset(self, sess):

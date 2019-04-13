@@ -7,14 +7,19 @@ from mlgm.layers import Dropout
 from mlgm.algo import Maml
 from mlgm.sampler import MnistMetaSampler
 from mlgm.model import Vae
+import argparse
 
+def main(args):
+    digits = list(range(7))
+    meta_batch_size = 7
+    if args.test:
+        digits = list(range(7, 10))
+        meta_batch_size = 3
 
-def main():
     metasampler = MnistMetaSampler(
         batch_size=1,
-        meta_batch_size=7,
-        train_digits=list(range(7)),
-        test_digits=list(range(7, 10)),
+        meta_batch_size=meta_batch_size,
+        digits=digits,        
         num_classes_per_batch=1,
         same_input_and_label=True)
     with tf.Session() as sess:
@@ -57,18 +62,36 @@ def main():
             ],
             latent_dim=latent_dim,
             sess=sess)
+
+        name = "maml_vae"
+        num_updates = 5
+        if args.test:
+            name = "test_maml_vae"      
+            num_updates=15      
+
         maml = Maml(
             model,
             metasampler,
             sess,
             compute_acc=False,
-            num_updates=5,
+            num_updates=num_updates,
             update_lr=0.001,
             meta_lr=0.0001,
-            metatrain_iterations=1000,
-            name="maml_vae")
-        maml.train()
+            name=name)
+
+        if args.test:
+            maml.test(1, args.restore_model_path)
+        else:    
+            maml.train(1000, args.restore_model_path)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', dest='test', action='store_true', default=False)
+    parser.add_argument('-m', dest='restore_model_path', action='store', required=False)
+
+    args = parser.parse_args()
+    if args.test and args.restore_model_path is None:
+        parser.error("--test requires -m [restore model path]")
+
+    main(args)

@@ -27,51 +27,51 @@ class Maml:
         self._metasampler = metasampler
         self._sess = sess
         self._compute_acc = compute_acc
-        self._num_updates = num_updates
+        self._num_updates = num_updates        
         self._update_lr = update_lr
         self._meta_lr = meta_lr
         self._logger = Logger(name) 
-        self._build()
+        self._build()        
         self._logger.add_graph(self._sess.graph)
 
-    def _build(self):
+    def _build(self):        
         with self._sess.graph.as_default():
             (self._input_a, self._label_a, self._input_b,
              self._label_b) = self._metasampler.build_inputs_and_labels()
-
+            
             def task_metalearn(args):
                 input_a, label_a, input_b, label_b = args
-                output = self._model.build_forward_pass(input_a)
-                acc = self._model.build_accuracy(label_a, output)
 
                 loss_a = None
                 acc_a = None
                 losses_b = []
                 accs_b = []
-                f_w = None
+                outputs_b = []
+                f_w = None                 
                 for i in range(self._num_updates):
-                    loss, acc, loss_b, acc_b, f_w = self._build_update(
+                    output_b, loss, acc, loss_b, acc_b, f_w = self._build_update(
                         input_a, label_a, input_b, label_b, self._update_lr,
                         f_w)
-                    if loss_a is None:
+                    if loss_a is None:                        
                         loss_a = tf.math.reduce_mean(loss)
-                        acc_a = acc
+                        acc_a = acc               
+                    outputs_b.append(output_b)
                     losses_b.append(tf.math.reduce_mean(loss_b))
                     accs_b.append(acc_b)
 
-                return output, loss_a, acc_a, losses_b, accs_b
+                return outputs_b, loss_a, acc_a, losses_b, accs_b
 
-            out_dtype = (tf.float32, tf.float32, tf.float32,
+            out_dtype = ([tf.float32] * self._num_updates, tf.float32, tf.float32,
                          [tf.float32] * self._num_updates,
                          [tf.float32] * self._num_updates)
             elems = (self._input_a, self._label_a, self._input_b,
-                     self._label_b)
-            (self._gen_images, self._loss_a, self._acc_a, self._losses_b,
+                     self._label_b)                     
+            (self._outputsb, self._loss_a, self._acc_a, self._losses_b, 
              self._accs_b) = tf.map_fn(
-                 task_metalearn,
-                 elems=elems,
-                 dtype=out_dtype,
-                 parallel_iterations=self._metasampler.meta_batch_size)
+                        task_metalearn,
+                        elems=elems,
+                        dtype=out_dtype,
+                        parallel_iterations=self._metasampler.meta_batch_size)
 
             with tf.variable_scope("metatrain", values=[self._losses_b]):
                 self._metatrain_op = tf.train.AdamOptimizer(
@@ -102,7 +102,7 @@ class Maml:
                                                       new_fast_weights)
             loss_b = self._model.build_loss(label_b, output_b)
             acc_b = self._model.build_accuracy(label_b, output_b)
-        return loss_a, acc_a, loss_b, acc_b, new_fast_weights
+        return output_b, loss_a, acc_a, loss_b, acc_b, new_fast_weights
 
     def _compute_metatrain_and_acc(self):
         loss_a, acc_a, losses_b, accs_b, _ = self._sess.run([
@@ -111,23 +111,20 @@ class Maml:
         ])
         return loss_a, acc_a, losses_b, accs_b
 
-    def _compute_metatest_and_acc(self):
-        input_imgs, gen_imgs, loss_a, acc_a, losses_b, accs_b = self._sess.run([
-            self._input_a, self._gen_images, self._loss_a, 
-            self._acc_a, self._losses_b, self._accs_b
-        ])
-        return input_imgs, gen_imgs, loss_a, acc_a, losses_b, accs_b
-
     def _compute_metatrain(self):
         loss_a, losses_b, _ = self._sess.run(
             [self._loss_a, self._losses_b, self._metatrain_op])
         return loss_a, losses_b
 
-    def _compute_metatest(self):
-        input_imgs, gen_imgs, loss_a, losses_b = self._sess.run([
-            self._input_a, self._gen_images, self._loss_a, self._losses_b
+    def _compute_metatest_and_acc(self): 
+        return self._sess.run([
+            self._input_b, self._outputsb, self._loss_a, self._acc_a, self._losses_b, self._accs_b
         ])
-        return input_imgs, gen_imgs, loss_a, losses_b 
+
+    def _compute_metatest(self):
+        return self._sess.run([
+            self._input_b, self._outputsb, self._loss_a, self._losses_b
+        ])                
 
     def train(self, num_iterations, restore_model_path=None):
         return self._run(num_iterations, restore_model_path, False)
@@ -145,19 +142,20 @@ class Maml:
             try:
                 if self._compute_acc:
                     if test:
-                        input_imgs, gen_imgs, loss_a, acc_a, losses_b, accs_b = self._compute_metatest_and_acc()            
-                        self._logger.add_image(self.gen_fig(input_imgs, gen_imgs), i)            
-                    else:
-                        loss_a, acc_a, losses_b, accs_b = self._compute_metatrain_and_acc()
+                        input_imgs, outputs_b, loss_a, acc_a, losses_b, accs_b = self._compute_metatest_and_acc()     
+                        for j in range(len(outputs_b)):       
+                            self._logger.add_image(self.gen_fig(input_imgs, outputs_b[j]), j)
+                    loss_a, acc_a, losses_b, accs_b = self._compute_metatrain_and_acc()                    
                     acc_a = np.mean(acc_a)
-                    accs_b = np.array(accs_b).mean(axis=1)
+                    accs_b = np.array(accs_b).mean(axis=1)                    
                 else:
                     if test:
-                        input_imgs, gen_imgs, loss_a, losses_b = self._compute_metatest()   
-                        self._logger.add_image(self.gen_fig(input_imgs, gen_imgs), i)                                 
+                        input_imgs, outputs_b, loss_a, losses_b = self._compute_metatest()   
+                        for j in range(len(outputs_b)):       
+                            self._logger.add_image(self.gen_fig(input_imgs, outputs_b[j]), j)                                      
                     else:
                         loss_a, losses_b = self._compute_metatrain()
-                                        
+
                 loss_a = np.mean(loss_a)
                 losses_b = np.array(losses_b).mean(axis=1)
                 self._logger.new_summary()
@@ -169,7 +167,7 @@ class Maml:
                 self._logger.dump_summary(i)
                 self._logger.save_tf_variables(self._model.get_variables(), i, self._sess)
             except tf.errors.OutOfRangeError:
-                self._metasampler.restart_dataset(self._sess)
+                self._metasampler.restart_dataset(self._sess)    
         self._logger.close()
 
     def gen_fig(self, imgs_a, gen_imgs_a):

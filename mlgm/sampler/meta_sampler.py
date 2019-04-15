@@ -27,7 +27,7 @@ class MetaSampler:
     def restart_test_dataset(self, sess):
         sess.run(self._test_iterator.initializer)
 
-    def _gen_metadata(self):
+    def _gen_dataset(self, test=False):
         raise NotImplementedError
 
     def init_iterators(self, sess):

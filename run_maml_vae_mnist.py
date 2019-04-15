@@ -69,7 +69,12 @@ def main():
             meta_lr=0.0001,
             name="maml_vae")
     
-        maml.train(1000, 1, 100, None)
+        maml.train(
+            train_itr=1000, 
+            test_itr=1,
+            test_interval=100,
+            restore_model_path=None
+        )
 
 
 if __name__ == "__main__":

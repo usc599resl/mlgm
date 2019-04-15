@@ -10,8 +10,7 @@ https://arxiv.org/pdf/1703.03400.pdf
 import numpy as np
 import tensorflow as tf
 from mlgm.logger import Logger
-import matplotlib.pyplot as plt
-import io
+from mlgm.utils import gen_fig
 
 class Maml:
     def __init__(self,
@@ -48,7 +47,7 @@ class Maml:
                 losses_b = []
                 accs_b = []
                 outputs_b = []
-                f_w = None                 
+                f_w = None                            
                 for i in range(self._num_updates):
                     output_b, loss, acc, loss_b, acc_b, f_w = self._build_update(
                         input_a, label_a, input_b, label_b, self._update_lr,
@@ -190,25 +189,10 @@ class Maml:
                     self._logger.add_value("test_acc_b/update_", accs_b.tolist())
                 
                 # Log images once at the end of training 
-                #if (i+test_interval) >= train_itr:
-                #    for j in range(len(gen_imgs)):       
-                #        self._logger.add_image(self.gen_fig(input_imgs, gen_imgs[j]), j)
+                if (i+test_interval) >= train_itr:
+                    for j in range(len(gen_imgs)):       
+                        self._logger.add_image(gen_fig(self._sess, input_imgs, gen_imgs[j]), j)
                 self._logger.dump_summary(i)
                 self._logger.save_tf_variables(self._model.get_variables(), i, self._sess)
 
         self._logger.close()
-
-    def gen_fig(self, imgs_a, gen_imgs_a):
-        fig = plt.figure()
-        for i, (img_a, gen_img_a) in enumerate(zip(imgs_a, gen_imgs_a)):
-            plt.subplot(2, 3, (i + 1))
-            plt.imshow(img_a[0], cmap='gray')
-            plt.subplot(2, 3, 3 + (i + 1))
-            plt.imshow(gen_img_a[0].reshape(28, 28), cmap='gray')
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        image = tf.image.decode_png(buf.getvalue(), channels=4)
-        image = tf.expand_dims(image, 0)
-        summary_op = tf.summary.image("plot", image)
-        return self._sess.run(summary_op)

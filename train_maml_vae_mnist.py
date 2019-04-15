@@ -68,14 +68,21 @@ def main():
             update_lr=0.001,
             meta_lr=0.0001,
             name="maml_vae")
-    
+         
         maml.train(
-            train_itr=1000, 
+            train_itr=2000, 
             test_itr=1,
             test_interval=100,
             restore_model_path=None
         )
-
+        
+        '''
+        maml.test(
+            test_itr=1,
+            restore_model_path='./data/maml_vae/maml_vae_20_53_04_14_19/itr_950'
+        )
+        '''
+        
 
 if __name__ == "__main__":
     main()

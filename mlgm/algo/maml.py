@@ -127,7 +127,17 @@ class Maml:
     def _compute_metatest(self, handle):
         return self._sess.run([
             self._input_b, self._outputsb, self._loss_a, self._losses_b],
-            feed_dict={self._handle: handle})                
+            feed_dict={self._handle: handle})     
+
+    def test(self, test_itr, restore_model_path):
+        assert restore_model_path
+
+        self._sess.run(tf.global_variables_initializer())
+        self._sess.run(tf.local_variables_initializer())        
+        self._model.restore_model(restore_model_path)
+
+        _, test_handle = self._metasampler.init_iterators(self._sess)
+        self._test(test_itr, test_handle, 0, True)
 
     def train(self, train_itr, test_itr, test_interval, restore_model_path):
         self._sess.run(tf.global_variables_initializer())
@@ -160,39 +170,42 @@ class Maml:
                 self._metasampler.restart_train_dataset(self._sess)
 
             if i % test_interval == 0:
-                self._metasampler.restart_test_dataset(self._sess)
-                total_loss_a = 0
-                total_losses_b = np.array([0.] * self._num_updates)                
-                for j in range(test_itr):
-                    try:
-                        if self._compute_acc:
-                            input_imgs, gen_imgs, loss_a, acc_a, losses_b, accs_b = self._compute_metatest_and_acc(test_handle)                    
-                            acc_a = np.mean(acc_a)
-                            accs_b = np.array(accs_b).mean(axis=1)                    
-                        else:
-                            input_imgs, gen_imgs, loss_a, losses_b = self._compute_metatest(test_handle) 
-
-                        loss_a = np.mean(loss_a)
-                        losses_b = np.array(losses_b).mean(axis=1)
-                        total_loss_a += loss_a
-                        total_losses_b += losses_b
-                    except tf.errors.OutOfRangeError:
-                        self._metasampler.restart_test_dataset(self._sess)
-                
-                total_loss_a = total_loss_a / test_itr
-                total_losses_b = total_losses_b / test_itr
-                self._logger.new_summary()                
-                self._logger.add_value("test_loss_a", total_loss_a)
-                self._logger.add_value("test_loss_b/update_", total_losses_b.tolist())
-                if self._compute_acc:
-                    self._logger.add_value("test_acc_a", acc_a)
-                    self._logger.add_value("test_acc_b/update_", accs_b.tolist())
-                
-                # Log images once at the end of training 
-                if (i+test_interval) >= train_itr:
-                    for j in range(len(gen_imgs)):       
-                        self._logger.add_image(gen_fig(self._sess, input_imgs, gen_imgs[j]), j)
-                self._logger.dump_summary(i)
-                self._logger.save_tf_variables(self._model.get_variables(), i, self._sess)
+                log_images = (i + test_interval) >= train_itr
+                self._test(test_itr, test_handle, i, log_images)                
 
         self._logger.close()
+
+    def _test(self, test_itr, test_handle, global_step, log_images=False):
+        self._metasampler.restart_test_dataset(self._sess)
+        total_loss_a = 0
+        total_losses_b = np.array([0.] * self._num_updates)                
+        for j in range(test_itr):
+            try:
+                if self._compute_acc:
+                    input_imgs, gen_imgs, loss_a, acc_a, losses_b, accs_b = self._compute_metatest_and_acc(test_handle)                    
+                    acc_a = np.mean(acc_a)
+                    accs_b = np.array(accs_b).mean(axis=1)                    
+                else:
+                    input_imgs, gen_imgs, loss_a, losses_b = self._compute_metatest(test_handle) 
+
+                loss_a = np.mean(loss_a)
+                losses_b = np.array(losses_b).mean(axis=1)
+                total_loss_a += loss_a
+                total_losses_b += losses_b
+            except tf.errors.OutOfRangeError:
+                self._metasampler.restart_test_dataset(self._sess)
+        
+        total_loss_a = total_loss_a / test_itr
+        total_losses_b = total_losses_b / test_itr
+        self._logger.new_summary()                
+        self._logger.add_value("test_loss_a", total_loss_a)
+        self._logger.add_value("test_loss_b/update_", total_losses_b.tolist())
+        if self._compute_acc:
+            self._logger.add_value("test_acc_a", acc_a)
+            self._logger.add_value("test_acc_b/update_", accs_b.tolist())
+        
+        if log_images:
+            for j in range(len(gen_imgs)):       
+                self._logger.add_image(gen_fig(self._sess, input_imgs, gen_imgs[j]), j)
+        self._logger.dump_summary(global_step)
+

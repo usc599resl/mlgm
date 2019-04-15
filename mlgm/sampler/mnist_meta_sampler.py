@@ -88,34 +88,6 @@ class MnistMetaSampler(MetaSampler):
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))
         return dataset_sym
 
-    def _gen_train_metadata(self):
-        all_ids = np.array([], dtype=np.int32)
-        all_labels = np.array([], dtype=np.int32)
-        num_tasks = 0
-        for task in permutations(self._digits,
-                                 self._num_classes_per_batch):
-            task_ids = np.array([], dtype=np.int32)
-            task_labels = np.array([], dtype=np.int32)
-            for i, label in enumerate(task):
-                label_ids = np.random.choice(
-                    self._inputs_per_label[label], self._batch_size)
-                labels = np.empty(self._batch_size, dtype=np.int32)
-                labels.fill(i)
-                task_labels = np.append(task_labels, labels)
-                task_ids = np.append(task_ids, label_ids)
-            all_labels = np.append(all_labels, task_labels)
-            all_ids = np.append(all_ids, task_ids)
-            num_tasks += 1
-        all_ids_sym = tf.convert_to_tensor(all_ids)
-        inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
-        all_inputs = tf.gather(inputs_sym, all_ids_sym)
-        all_labels = tf.convert_to_tensor(
-            all_labels, dtype=tf.dtypes.int32)
-        if self._one_hot_labels:
-            all_labels = tf.one_hot(all_labels, depth=10)
-        dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))
-        return dataset_sym, num_tasks
-
     def build_inputs_and_labels(self, handle):
         slice_size = (self._batch_size // 2) * self._num_classes_per_batch
         input_batches, label_batches = self._gen_metadata(handle)

@@ -7,7 +7,6 @@ from mlgm.layers import Dropout
 from mlgm.algo import Maml
 from mlgm.sampler import MnistMetaSampler
 from mlgm.model import Vae
-import argparse
 
 def main():
     metasampler = MnistMetaSampler(

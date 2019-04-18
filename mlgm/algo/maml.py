@@ -74,9 +74,11 @@ class Maml:
                         parallel_iterations=self._metasampler.meta_batch_size)
 
             with tf.variable_scope("metatrain", values=[self._losses_b]):
-                self._metatrain_op = tf.train.AdamOptimizer(
-                    self._meta_lr).minimize(
-                        self._losses_b[self._num_updates - 1])
+                optimizer = tf.train.AdamOptimizer(self._meta_lr) 
+                grads = optimizer.compute_gradients(
+                    self._losses_b[self._num_updates - 1])
+                grads = [(tf.clip_by_value(grad, -10, 10), var) for grad, var in grads]
+                self._metatrain_op = optimizer.apply_gradients(grads)
 
     def _init_variables(self):
         self._handle = tf.placeholder(tf.string, shape=[])

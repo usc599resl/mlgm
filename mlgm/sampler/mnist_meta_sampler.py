@@ -49,7 +49,7 @@ class MnistMetaSampler(MetaSampler):
                          test_digits, num_classes_per_batch, train_inputs,
                          train_labels, test_inputs, test_labels)
 
-    def _gen_metadata(self, inputs_per_label, digits):
+    def _gen_metadata(self, inputs_per_label, digits, inputs):
         all_train_ids = np.array([], dtype=np.int32)
         all_train_labels = np.array([], dtype=np.int32)
         num_tasks = 0
@@ -68,7 +68,7 @@ class MnistMetaSampler(MetaSampler):
             num_tasks += 1
         all_train_ids_sym = tf.convert_to_tensor(all_train_ids)
         train_inputs_sym = tf.convert_to_tensor(
-            self._train_inputs, dtype=tf.float32)
+            inputs, dtype=tf.float32)
         all_train_inputs = tf.gather(train_inputs_sym, all_train_ids_sym)
         all_train_labels = tf.convert_to_tensor(
             all_train_labels, dtype=tf.dtypes.int32)
@@ -80,12 +80,14 @@ class MnistMetaSampler(MetaSampler):
 
     def _gen_train_metadata(self):
         dataset_sym, num_tasks = self._gen_metadata(
-                self._train_inputs_per_label, self._train_digits)
+                self._train_inputs_per_label, self._train_digits,
+                self._train_inputs)
         return dataset_sym, num_tasks
 
     def _gen_test_metadata(self):
         dataset_sym, num_tasks = self._gen_metadata(
-                self._test_inputs_per_label, self._test_digits)
+                self._test_inputs_per_label, self._test_digits,
+                self._test_inputs)
         return dataset_sym, num_tasks
 
     def _build_inputs_and_labels(self, input_batches, label_batches):

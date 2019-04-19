@@ -60,6 +60,7 @@ class Maml:
                     self._test_accs_b, self._output) = self._build(
                             input_a, label_a, input_b, label_b,
                             self._metasampler.test_meta_batch_size)
+            self._input_b = input_b
 
     def _build(self, dataset_in_a, dataset_lb_a, dataset_in_b, dataset_lb_b,
             num_parallel_itr):
@@ -139,15 +140,16 @@ class Maml:
 
     def _test_metalearner(self, acc=True):
         if acc:
-            loss_a, acc_a, losses_b, accs_b, output = self._sess.run([
+            loss_a, acc_a, losses_b, accs_b, output, input_b = self._sess.run([
                 self._test_loss_a, self._test_acc_a, self._test_losses_b,
-                self._test_accs_b, self._output
+                self._test_accs_b, self._output, self._input_b
             ])
-            return loss_a, acc_a, losses_b, accs_b, output
+            return loss_a, acc_a, losses_b, accs_b, output, input_b
         else:
-            loss_a, losses_b, output = self._sess.run(
-                [self._test_loss_a, self._test_losses_b, self._output])
-            return loss_a, losses_b, output
+            loss_a, losses_b, output, input_b = self._sess.run(
+                [self._test_loss_a, self._test_losses_b, self._output,
+                    self._input_b])
+            return loss_a, losses_b, output, input_b
 
     def train(self, restore_model_path=None):
         self._sess.run(tf.global_variables_initializer())
@@ -165,7 +167,6 @@ class Maml:
             test_accs_b = []
             train_accs_a = []
             train_accs_b = []
-            outputs = []
             while True:
                 try:
                     if self._compute_acc:
@@ -187,17 +188,16 @@ class Maml:
                 try:
                     if self._compute_acc:
                         (loss_a, acc_a, losses_b,
-                         accs_b, out) = self._test_metalearner(
+                         accs_b, out, in_b) = self._test_metalearner(
                                  acc=self._compute_acc)
                         test_accs_a.append(acc_a)
                         test_accs_b.append(np.array(accs_b).mean(axis=1))
                     else:
-                        loss_a, losses_b, out = self._test_metalearner(
+                        loss_a, losses_b, out, in_b = self._test_metalearner(
                                 acc=self._compute_acc)
                     test_losses_a.append(np.mean(loss_a))
                     test_losses_b.append(
                             np.array(losses_b).mean(axis=1))
-                    outputs.append(out)
                 except tf.errors.OutOfRangeError:
                     self._metasampler.restart_test_dataset(self._sess)
                     break
@@ -214,7 +214,8 @@ class Maml:
             self._logger.add_value(
                     "test_loss_b/update_", test_losses_b.tolist())
             out = out.reshape(out.shape[:-1])
-            encoded_img = get_img_from_arr(out)
+            img_arr = np.append(out, in_b, axis=1)
+            encoded_img = get_img_from_arr(img_arr)
             self._logger.add_img("output_mnist", encoded_img)
             if self._compute_acc:
                 train_acc_a = np.array(train_accs_a).mean()
@@ -230,5 +231,4 @@ class Maml:
             self._logger.dump_summary(i)
         self._logger.save_tf_variables(
                 self._model.get_variables(), i, self._sess)
-
         self._logger.close()

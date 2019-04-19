@@ -30,6 +30,12 @@ class Logger:
             self._summary.value.add(tag=name, simple_value=value)
             self._std_out.update({name: value})
 
+    def add_img(self, name, encoded_img):
+        summ_img = self._summary.Image(
+                height=256, width=256, colorspace=3,
+                encoded_image_string=encoded_img)
+        self._summary.value.add(tag=name, image=summ_img)
+
     def add_graph(self, graph):
         self._writer.add_graph(graph)
 

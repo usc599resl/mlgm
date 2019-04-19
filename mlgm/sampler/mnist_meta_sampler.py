@@ -25,7 +25,6 @@ class MnistMetaSampler(MetaSampler):
         assert test_digits is None or (
             type(test_digits) == list
             and [0 <= test_digit <= 9 for test_digit in test_digits])
-        pass
         self._train_digits = list(set(train_digits))
         self._test_digits = list(set(test_digits))
         self._one_hot_labels = one_hot_labels
@@ -50,17 +49,16 @@ class MnistMetaSampler(MetaSampler):
                          test_digits, num_classes_per_batch, train_inputs,
                          train_labels, test_inputs, test_labels)
 
-    def _gen_train_metadata(self):
+    def _gen_metadata(self, inputs_per_label, digits):
         all_train_ids = np.array([], dtype=np.int32)
         all_train_labels = np.array([], dtype=np.int32)
         num_tasks = 0
-        for task in permutations(self._train_digits,
-                                 self._num_classes_per_batch):
+        for task in permutations(digits, self._num_classes_per_batch):
             task_ids = np.array([], dtype=np.int32)
             task_labels = np.array([], dtype=np.int32)
             for i, label in enumerate(task):
                 label_ids = np.random.choice(
-                    self._train_inputs_per_label[label], self._batch_size)
+                    inputs_per_label[label], self._batch_size)
                 labels = np.empty(self._batch_size, dtype=np.int32)
                 labels.fill(i)
                 task_labels = np.append(task_labels, labels)
@@ -80,18 +78,42 @@ class MnistMetaSampler(MetaSampler):
                                                           all_train_labels))
         return dataset_sym, num_tasks
 
-    def build_inputs_and_labels(self):
+    def _gen_train_metadata(self):
+        dataset_sym, num_tasks = self._gen_metadata(
+                self._train_inputs_per_label, self._train_digits)
+        return dataset_sym, num_tasks
+
+    def _gen_test_metadata(self):
+        dataset_sym, num_tasks = self._gen_metadata(
+                self._test_inputs_per_label, self._test_digits)
+        return dataset_sym, num_tasks
+
+    def _build_inputs_and_labels(self, input_batches, label_batches):
         slice_size = (self._batch_size // 2) * self._num_classes_per_batch
-        input_a = tf.slice(self._input_batches, [0, 0, 0, 0],
+        input_a = tf.slice(input_batches, [0, 0, 0, 0],
                            [-1, slice_size, -1, -1])
-        input_b = tf.slice(self._input_batches, [0, slice_size, 0, 0],
+        input_b = tf.slice(input_batches, [0, slice_size, 0, 0],
                            [-1, -1, -1, -1])
         if self._same_input_and_label:
             label_a = tf.reshape(input_a, input_a.get_shape().concatenate(1))
             label_b = tf.reshape(input_b, input_b.get_shape().concatenate(1))
         else:
-            label_a = tf.slice(self._label_batches, [0, 0, 0],
-                               [-1, slice_size, -1])
-            label_b = tf.slice(self._label_batches, [0, slice_size, 0],
-                               [-1, -1, -1])
+            if self._one_hot_labels:
+                label_a = tf.slice(label_batches, [0, 0, 0],
+                                   [-1, slice_size, -1])
+                label_b = tf.slice(label_batches, [0, slice_size, 0],
+                                   [-1, -1, -1])
+            else:
+                label_a = tf.slice(label_batches, [0, 0],
+                        [-1, slice_size])
+                label_b = tf.slice(label_batches, [0, slice_size],
+                                   [-1, -1])
         return input_a, label_a, input_b, label_b
+
+    def build_train_inputs_and_labels(self):
+        return self._build_inputs_and_labels(self._train_input_batches,
+                self._train_label_batches)
+
+    def build_test_inputs_and_labels(self):
+        return self._build_inputs_and_labels(self._test_input_batches,
+                self._test_label_batches)

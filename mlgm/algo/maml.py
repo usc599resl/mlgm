@@ -24,6 +24,7 @@ class Maml:
                  num_updates=1,
                  update_lr=0.0001,
                  meta_lr=0.0001,
+                 pretrain_iterations=0,
                  metatrain_iterations=1000):
         self._model = model
         self._metasampler = metasampler
@@ -32,6 +33,7 @@ class Maml:
         self._num_updates = num_updates
         self._update_lr = update_lr
         self._meta_lr = meta_lr
+        self._pretrain_itr = pretrain_iterations
         self._metatrain_itr = metatrain_iterations
         self._logger = Logger(name)
         self._build_train()
@@ -40,6 +42,7 @@ class Maml:
 
     def _build_train(self):
         with self._sess.graph.as_default():
+            self._itr_in = tf.placeholder(dtype=tf.float32, shape=())
             input_a, label_a, input_b, label_b = \
                     self._metasampler.build_train_inputs_and_labels()
             (self._train_loss_a, self._train_acc_a, self._train_losses_b,
@@ -47,10 +50,17 @@ class Maml:
                             input_a, label_a, input_b, label_b,
                             self._metasampler.train_meta_batch_size)
 
+            with tf.variable_scope("pretrain", values=[self._train_loss_a]):
+                self._pretrain_op = tf.train.AdamOptimizer(
+                        self._meta_lr).minimize(self._train_loss_a)
+
             with tf.variable_scope("metatrain", values=[self._train_losses_b]):
-                self._metatrain_op = tf.train.AdamOptimizer(
-                    self._meta_lr).minimize(
-                        self._train_losses_b[self._num_updates - 1])
+                self._metatrain_ops = []
+                for i, loss_b in enumerate(self._train_losses_b):
+                    i = (i + 1.) * 200.
+                    lr = self._meta_lr * tf.math.exp(- self._itr_in / i)
+                    self._metatrain_ops.append(tf.train.AdamOptimizer(
+                        lr).minimize(loss_b))
 
     def _build_test(self):
         with self._sess.graph.as_default():
@@ -126,17 +136,40 @@ class Maml:
             acc_b = self._model.build_accuracy(label_b, output_b)
         return loss_a, acc_a, loss_b, acc_b, new_fast_weights, output_b
 
-    def _compute_metatrain(self, acc=True):
+    def _compute_pretrain(self, acc=True):
+        if acc:
+            loss_a, acc_a, losses_b, accs_b, _ = self._sess.run([
+                self._train_loss_a, self._train_acc_a, self._pretrain_op
+            ])
+            return loss_a, acc_a
+        else:
+            loss_a, _ = self._sess.run(
+                [self._train_loss_a, self._pretrain_op])
+            return loss_a
+
+    def _compute_metatrain(self, itr, acc=True):
         if acc:
             loss_a, acc_a, losses_b, accs_b, _ = self._sess.run([
                 self._train_loss_a, self._train_acc_a, self._train_losses_b,
-                self._train_accs_b, self._metatrain_op
-            ])
+                self._train_accs_b, self._metatrain_ops
+                ], {self._itr_in: itr})
             return loss_a, acc_a, losses_b, accs_b
         else:
             loss_a, losses_b, _ = self._sess.run(
-                [self._train_loss_a, self._train_losses_b, self._metatrain_op])
+                [self._train_loss_a, self._train_losses_b,
+                    self._metatrain_ops],
+                {self._itr_in: itr})
             return loss_a, losses_b
+
+    def _test_prelearner(self, acc=True):
+        if acc:
+            loss_a, acc_a = self._sess.run([
+                self._test_loss_a, self._test_acc_a
+            ])
+            return loss_a, acc_a
+        else:
+            loss_a = self._sess.run([self._test_loss_a])
+            return loss_a
 
     def _test_metalearner(self, acc=True):
         if acc:
@@ -158,7 +191,7 @@ class Maml:
             self._model.restore_model(restore_model_path)
         self._metasampler.restart_train_dataset(self._sess)
         self._metasampler.restart_test_dataset(self._sess)
-        for i in range(self._metatrain_itr):
+        for i in range(self._pretrain_itr + self._metatrain_itr):
             test_losses_a = []
             test_losses_b = []
             train_losses_a = []
@@ -167,68 +200,110 @@ class Maml:
             test_accs_b = []
             train_accs_a = []
             train_accs_b = []
-            while True:
-                try:
-                    if self._compute_acc:
-                        (loss_a, acc_a, losses_b,
-                         accs_b) = self._compute_metatrain(
-                                 acc=self._compute_acc)
-                        train_accs_a.append(acc_a)
-                        train_accs_b.append(np.array(accs_b).mean(axis=1))
-                    else:
-                        loss_a, losses_b = self._compute_metatrain(
-                                acc=self._compute_acc)
-                    train_losses_a.append(np.mean(loss_a))
-                    train_losses_b.append(np.array(losses_b).mean(axis=1))
-                except tf.errors.OutOfRangeError:
-                    self._metasampler.restart_train_dataset(self._sess)
-                    break
+            if i < self._pretrain_itr:
+                while True:
+                    try:
+                        if self._compute_acc:
+                            (loss_a, acc_a) = self._compute_pretrain(
+                                     acc=self._compute_acc)
+                            train_accs_a.append(acc_a)
+                        else:
+                            loss_a = self._compute_pretrain(
+                                    acc=self._compute_acc)
+                        train_losses_a.append(np.mean(loss_a))
+                    except tf.errors.OutOfRangeError:
+                        self._metasampler.restart_train_dataset(self._sess)
+                        break
 
-            while True:
-                try:
-                    if self._compute_acc:
-                        (loss_a, acc_a, losses_b,
-                         accs_b, out, in_b) = self._test_metalearner(
-                                 acc=self._compute_acc)
-                        test_accs_a.append(acc_a)
-                        test_accs_b.append(np.array(accs_b).mean(axis=1))
-                    else:
-                        loss_a, losses_b, out, in_b = self._test_metalearner(
-                                acc=self._compute_acc)
-                    test_losses_a.append(np.mean(loss_a))
-                    test_losses_b.append(
-                            np.array(losses_b).mean(axis=1))
-                except tf.errors.OutOfRangeError:
-                    self._metasampler.restart_test_dataset(self._sess)
-                    break
+                while True:
+                    try:
+                        if self._compute_acc:
+                            (loss_a, acc_a) = self._test_prelearner(
+                                     acc=self._compute_acc)
+                            test_accs_a.append(acc_a)
+                        else:
+                            loss_a = self._test_prelearner(
+                                    acc=self._compute_acc)
+                        test_losses_a.append(np.mean(loss_a))
+                    except tf.errors.OutOfRangeError:
+                        self._metasampler.restart_test_dataset(self._sess)
+                        break
 
-            train_loss_a = np.array(train_losses_a).mean()
-            train_losses_b = np.array(train_losses_b).mean(axis=0)
-            test_loss_a = np.array(test_losses_a).mean()
-            test_losses_b = np.array(test_losses_b).mean(axis=0)
-            self._logger.new_summary()
-            self._logger.add_value("train_loss_a", train_loss_a)
-            self._logger.add_value(
-                    "train_loss_b/update_", train_losses_b.tolist())
-            self._logger.add_value("test_loss_a", test_loss_a)
-            self._logger.add_value(
-                    "test_loss_b/update_", test_losses_b.tolist())
-            out = out.reshape(out.shape[:-1])
-            img_arr = np.append(out, in_b, axis=1)
-            encoded_img = get_img_from_arr(img_arr)
-            self._logger.add_img("output_mnist", encoded_img)
-            if self._compute_acc:
-                train_acc_a = np.array(train_accs_a).mean()
-                train_accs_b = np.array(train_accs_b).mean(axis=0)
-                test_acc_a = np.array(test_accs_a).mean()
-                test_accs_b = np.array(test_accs_b).mean(axis=0)
-                self._logger.add_value("train_acc_a", train_acc_a)
+                train_loss_a = np.array(train_losses_a).mean()
+                test_loss_a = np.array(test_losses_a).mean()
+                self._logger.new_summary()
+                self._logger.add_value("train_loss_a", train_loss_a)
+                self._logger.add_value("test_loss_a", test_loss_a)
+                if self._compute_acc:
+                    train_acc_a = np.array(train_accs_a).mean()
+                    test_acc_a = np.array(test_accs_a).mean()
+                    self._logger.add_value("train_acc_a", train_acc_a)
+                    self._logger.add_value("test_acc_a", acc_a)
+                self._logger.dump_summary(i)
+
+            else:
+                while True:
+                    try:
+                        if self._compute_acc:
+                            (loss_a, acc_a, losses_b,
+                             accs_b) = self._compute_metatrain(i,
+                                     acc=self._compute_acc)
+                            train_accs_a.append(acc_a)
+                            train_accs_b.append(np.array(accs_b).mean(axis=1))
+                        else:
+                            loss_a, losses_b = self._compute_metatrain(i,
+                                    acc=self._compute_acc)
+                        train_losses_a.append(np.mean(loss_a))
+                        train_losses_b.append(np.array(losses_b).mean(axis=1))
+                    except tf.errors.OutOfRangeError:
+                        self._metasampler.restart_train_dataset(self._sess)
+                        break
+
+                while True:
+                    try:
+                        if self._compute_acc:
+                            (loss_a, acc_a, losses_b,
+                             accs_b, out, in_b) = self._test_metalearner(
+                                     acc=self._compute_acc)
+                            test_accs_a.append(acc_a)
+                            test_accs_b.append(np.array(accs_b).mean(axis=1))
+                        else:
+                            loss_a, losses_b, out, in_b = self._test_metalearner(
+                                    acc=self._compute_acc)
+                        test_losses_a.append(np.mean(loss_a))
+                        test_losses_b.append(
+                                np.array(losses_b).mean(axis=1))
+                    except tf.errors.OutOfRangeError:
+                        self._metasampler.restart_test_dataset(self._sess)
+                        break
+
+                train_loss_a = np.array(train_losses_a).mean()
+                train_losses_b = np.array(train_losses_b).mean(axis=0)
+                test_loss_a = np.array(test_losses_a).mean()
+                test_losses_b = np.array(test_losses_b).mean(axis=0)
+                self._logger.new_summary()
+                self._logger.add_value("train_loss_a", train_loss_a)
                 self._logger.add_value(
-                        "train_acc_b/update_", train_accs_b.tolist())
-                self._logger.add_value("test_acc_a", acc_a)
+                        "train_loss_b/update_", train_losses_b.tolist())
+                self._logger.add_value("test_loss_a", test_loss_a)
                 self._logger.add_value(
-                        "test_acc_b/update_", accs_b.tolist())
-            self._logger.dump_summary(i)
+                        "test_loss_b/update_", test_losses_b.tolist())
+                out = out.reshape(out.shape[:-1])
+                img_arr = np.append(out, in_b, axis=1)
+                encoded_img = get_img_from_arr(img_arr)
+                self._logger.add_img("output_mnist", encoded_img)
+                if self._compute_acc:
+                    train_acc_a = np.array(train_accs_a).mean()
+                    train_accs_b = np.array(train_accs_b).mean(axis=0)
+                    test_acc_a = np.array(test_accs_a).mean()
+                    test_accs_b = np.array(test_accs_b).mean(axis=0)
+                    self._logger.add_value("train_acc_a", train_acc_a)
+                    self._logger.add_value(
+                            "train_acc_b/update_", train_accs_b.tolist())
+                    self._logger.add_value("test_acc_a", acc_a)
+                    self._logger.add_value(
+                            "test_acc_b/update_", accs_b.tolist())
+                self._logger.dump_summary(i)
         self._logger.save_tf_variables(
                 self._model.get_variables(), i, self._sess)
         self._logger.close()

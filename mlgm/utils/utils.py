@@ -1,5 +1,5 @@
 import io
-import pdb
+import math
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -22,3 +22,6 @@ def get_img_from_arr(fig_arr):
     plt.close(fig)
     buf.seek(0)
     return buf.getvalue()
+
+def conv_out_size_same(size, stride):
+  return int(math.ceil(float(size) / float(stride)))

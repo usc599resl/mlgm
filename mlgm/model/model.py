@@ -1,9 +1,4 @@
-from datetime import datetime
-from functools import singledispatch
-import os
-
 import tensorflow as tf
-from tensorflow.keras.layers import Layer
 
 
 class Model:
@@ -43,7 +38,7 @@ class Model:
         return tf.get_collection(
             tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
 
-    def _set_tensors(self, layer_in, layer, use_tensors):
+    def _set_tensors(self, layer_in, layer, use_tensors, training=False):
         supported_types = [
             tf.keras.layers.Dense, tf.keras.layers.Conv2D,
             tf.keras.layers.Conv2DTranspose
@@ -55,16 +50,29 @@ class Model:
                 bias_var = layer.bias
                 layer.kernel = use_tensors[layer.kernel.name]
                 layer.bias = use_tensors[layer.bias.name]
-                layer_out = layer(layer_in)
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
                 layer.kernel = kernel_var
                 layer.bias = bias_var
             else:
-                layer_out = layer(layer_in)
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
         else:
-            layer_out = layer(layer_in)
+            layer_out = self._call_layer(layer, layer_in, training=training)
         return layer_out
 
-    def build_forward_pass(self, input_tensor, use_tensors=None, name=None):
+    def _call_layer(self, layer, layer_in, training=False):
+        layers_with_training_arg = [tf.keras.layers.BatchNormalization]
+        if type(layer) in layers_with_training_arg:
+            return layer(layer_in, training=training)
+        else:
+            return layer(layer_in)
+
+    def build_forward_pass(self,
+                           input_tensor,
+                           use_tensors=None,
+                           training=False,
+                           name=None):
         layer_in = input_tensor
         # Model layers
         with tf.variable_scope(
@@ -74,9 +82,11 @@ class Model:
                 self._name_scope = forward_scope._name_scope
             for layer in self._layers:
                 if use_tensors:
-                    layer_out = self._set_tensors(layer_in, layer, use_tensors)
+                    layer_out = self._set_tensors(layer_in, layer, use_tensors,
+                                                  training)
                 else:
-                    layer_out = layer(layer_in)
+                    layer_out = self._call_layer(
+                        layer, layer_in, training=training)
                 layer_in = layer_out
 
         return layer_out

@@ -1,52 +1,70 @@
 from itertools import permutations
+import pickle
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.datasets import mnist
 
 from mlgm.sampler import MetaSampler
 
 
-class MnistMetaSampler(MetaSampler):
+class Cifar10MetaSampler(MetaSampler):
     def __init__(
             self,
             batch_size,
             meta_batch_size,
-            train_digits,
-            test_digits,
+            train_classes,
+            test_classes,
             num_classes_per_batch,
             one_hot_labels=False,
             same_input_and_label=False,
     ):
-        assert train_digits is None or (
-            type(train_digits) == list
-            and [0 <= train_digit <= 9 for train_digit in train_digits])
-        assert test_digits is None or (
-            type(test_digits) == list
-            and [0 <= test_digit <= 9 for test_digit in test_digits])
-        self._train_digits = list(set(train_digits))
-        self._test_digits = list(set(test_digits))
+        self._train_classes = list(set(train_classes))
+        self._test_classes = list(set(test_classes))
         self._one_hot_labels = one_hot_labels
         self._same_input_and_label = same_input_and_label
-        (train_inputs, train_labels), (test_inputs,
-                                       test_labels) = mnist.load_data()
+
+        with open("data/cifar-10-batches-py/batches.meta", "rb") as f:
+            cifar_10_meta = pickle.load(f, encoding="bytes")
+            self._label_names = cifar_10_meta[b'label_names']
 
         self._train_inputs_per_label = {}
         self._test_inputs_per_label = {}
-        for train_digit in self._train_digits:
-            ids = np.where(train_digit == train_labels)[0]
-            np.random.shuffle(ids)
-            self._train_inputs_per_label.update({train_digit: ids})
-        for test_digit in self._test_digits:
-            ids = np.where(test_digit == test_labels)[0]
-            np.random.shuffle(ids)
-            self._test_inputs_per_label.update({test_digit: ids})
+        with open("data/cifar-10-batches-py/data_batch_1", "rb") as f:
+            train_batch = pickle.load(f, encoding="bytes")
+            train_inputs = np.array(train_batch[b'data']).reshape(-1, 3, 32,
+                                                              32).transpose(
+                                                                  0, 2, 3, 1)
+            train_labels = np.array(train_batch[b'labels'])
+            for train_class in self._train_classes:
+                ids = np.argwhere(train_class == train_labels).reshape(-1)
+                np.random.shuffle(ids)
+                self._train_inputs_per_label.update({train_class: ids})
 
-        train_inputs = train_inputs / 255.0
-        test_inputs = test_inputs / 255.0
-        super().__init__(batch_size, meta_batch_size, train_digits,
-                         test_digits, num_classes_per_batch, train_inputs,
+        with open("data/cifar-10-batches-py/test_batch", "rb") as f:
+            test_batch = pickle.load(f, encoding="bytes")
+            test_inputs = np.array(test_batch[b'data']).reshape(-1, 3, 32,
+                                                                32).transpose(
+                                                                    0, 2, 3, 1)
+            test_labels = np.array(test_batch[b'labels'])
+            for test_class in self._test_classes:
+                ids = np.argwhere(test_class == test_labels).reshape(-1)
+                np.random.shuffle(ids)
+                self._test_inputs_per_label.update({test_class: ids})
+
+        super().__init__(batch_size, meta_batch_size, train_classes,
+                         test_classes, num_classes_per_batch, train_inputs,
                          train_labels, test_inputs, test_labels)
+
+    def _gen_train_metadata(self):
+        dataset_sym, num_tasks = self._gen_metadata(
+            self._train_inputs_per_label, self._train_classes,
+            self._train_inputs)
+        return dataset_sym, num_tasks
+
+    def _gen_test_metadata(self):
+        dataset_sym, num_tasks = self._gen_metadata(
+            self._test_inputs_per_label, self._test_classes, self._test_inputs)
+        return dataset_sym, num_tasks
 
     def _gen_metadata(self, inputs_per_label, digits, inputs):
         all_ids = np.array([], dtype=np.int32)
@@ -66,7 +84,7 @@ class MnistMetaSampler(MetaSampler):
             all_ids = np.append(all_ids, task_ids)
             num_tasks += 1
         all_ids_sym = tf.convert_to_tensor(all_ids)
-        inputs_sym = tf.convert_to_tensor(inputs, dtype=tf.float32)
+        inputs_sym = tf.convert_to_tensor(inputs, dtype=tf.int32)
         all_inputs_sym = tf.gather(inputs_sym, all_ids_sym)
         all_labels_sym = tf.convert_to_tensor(
             all_labels, dtype=tf.dtypes.int32)
@@ -76,26 +94,15 @@ class MnistMetaSampler(MetaSampler):
                                                           all_labels_sym))
         return dataset_sym, num_tasks
 
-    def _gen_train_metadata(self):
-        dataset_sym, num_tasks = self._gen_metadata(
-            self._train_inputs_per_label, self._train_digits,
-            self._train_inputs)
-        return dataset_sym, num_tasks
-
-    def _gen_test_metadata(self):
-        dataset_sym, num_tasks = self._gen_metadata(
-            self._test_inputs_per_label, self._test_digits, self._test_inputs)
-        return dataset_sym, num_tasks
-
     def _build_inputs_and_labels(self, input_batches, label_batches):
         slice_size = (self._batch_size // 2) * self._num_classes_per_batch
-        input_a = tf.slice(input_batches, [0, 0, 0, 0],
-                           [-1, slice_size, -1, -1])
-        input_b = tf.slice(input_batches, [0, slice_size, 0, 0],
-                           [-1, -1, -1, -1])
+        input_a = tf.slice(input_batches, [0, 0, 0, 0, 0],
+                           [-1, slice_size, -1, -1, -1])
+        input_b = tf.slice(input_batches, [0, slice_size, 0, 0, 0],
+                           [-1, -1, -1, -1, -1])
         if self._same_input_and_label:
-            label_a = tf.reshape(input_a, input_a.get_shape().concatenate(1))
-            label_b = tf.reshape(input_b, input_b.get_shape().concatenate(1))
+            label_a = input_a
+            label_b = input_b
         else:
             if self._one_hot_labels:
                 label_a = tf.slice(label_batches, [0, 0, 0],

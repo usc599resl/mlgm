@@ -5,10 +5,15 @@ import tensorflow as tf
 
 
 class Cifar10Sampler:
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, train_classes=None):
         with open("data/cifar-10-batches-py/batches.meta", "rb") as f:
             cifar_10_meta = pickle.load(f, encoding="bytes")
             self._label_names = cifar_10_meta[b'label_names']
+
+        if not train_classes:
+            sel_train_classes = list(range(0, len(self._label_names)))
+        else:
+            sel_train_classes = set(train_classes)
 
         all_train_inputs = None
         all_train_labels = None
@@ -30,8 +35,18 @@ class Cifar10Sampler:
                 else:
                     all_train_labels = np.append(
                         all_train_labels, train_labels, axis=0)
-        train_inputs = all_train_inputs
-        train_labels = all_train_labels
+
+        all_train_classes_id = None
+        for train_class in sel_train_classes:
+            train_classes_id = np.argwhere(
+                    all_train_labels == train_class).reshape(-1)
+            if all_train_classes_id is None:
+                all_train_classes_id = train_classes_id
+            else:
+                all_train_classes_id = np.append(all_train_classes_id,
+                        train_classes_id, axis=0)
+        train_inputs = all_train_inputs[all_train_classes_id]
+        train_labels = all_train_labels[all_train_classes_id]
 
         with open("data/cifar-10-batches-py/test_batch", "rb") as f:
             test_batch = pickle.load(f, encoding="bytes")
@@ -49,6 +64,8 @@ class Cifar10Sampler:
                                                                 train_lb_sym))
         test_dataset_sym = tf.data.Dataset.from_tensor_slices((test_in_sym,
                                                                test_lb_sym))
+        train_dataset_sym = train_dataset_sym.shuffle(len(train_labels))
+        test_dataset_sym = test_dataset_sym.shuffle(len(test_labels))
         train_batch_dataset = train_dataset_sym.batch(
             batch_size, drop_remainder=True)
         train_batch_itr = train_batch_dataset.make_initializable_iterator()

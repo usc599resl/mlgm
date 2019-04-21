@@ -34,30 +34,24 @@ class MetaSampler:
         assert self._train_iterator
         assert self._test_iterator
         
-        train_handle = sess.run(self._train_iterator.string_handle())
-        test_handle = sess.run(self._test_iterator.string_handle())
-
         sess.run(self._train_iterator.initializer)
         sess.run(self._test_iterator.initializer)
+
+        train_handle = sess.run(self._train_iterator.string_handle())
+        test_handle = sess.run(self._test_iterator.string_handle())
 
         return train_handle, test_handle                             
             
     def _gen_metadata(self, handle):
         num_inputs_per_batch = (
             self._batch_size * self._num_classes_per_batch)
-        num_inputs_per_meta_batch = (
-            num_inputs_per_batch * self._meta_batch_size)        
-        train_data_batch = self._train_dataset.batch(
-            num_inputs_per_meta_batch, drop_remainder=True)
-        test_data_batch = self._test_dataset.batch(
-            num_inputs_per_meta_batch, drop_remainder=True)
         self._train_iterator = \
-                train_data_batch.make_initializable_iterator()
+                self._train_dataset.make_initializable_iterator()
         self._test_iterator = \
-                test_data_batch.make_initializable_iterator()
+                self._test_dataset.make_initializable_iterator()
 
         iterator = tf.data.Iterator.from_string_handle(handle, 
-            train_data_batch.output_types, train_data_batch.output_shapes)
+            self._train_dataset.output_types, self._train_dataset.output_shapes)
         meta_batch_sym = iterator.get_next()
         all_input_batches = []
         all_label_batches = []

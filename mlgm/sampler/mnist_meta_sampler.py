@@ -39,13 +39,18 @@ class MnistMetaSampler(MetaSampler):
 
         self._train_inputs_per_label = {}
         self._test_inputs_per_label = {}
+        self._train_size = 0
+        self._test_size = 0
+
         for digit in self._train_digits:
             ids = np.where(digit == labels)[0]
+            self._train_size += len(ids)
             random.shuffle(ids)
             self._train_inputs_per_label.update({digit: ids})
 
         for digit in self._test_digits:
             ids = np.where(digit == labels)[0]
+            self._test_size += len(ids)
             random.shuffle(ids)
             self._test_inputs_per_label.update({digit: ids})
 
@@ -53,8 +58,6 @@ class MnistMetaSampler(MetaSampler):
         super().__init__(batch_size, meta_batch_size, inputs, num_classes_per_batch)
 
     def _gen_dataset(self, test=False):
-        all_ids = np.array([], dtype=np.int32)
-        all_labels = np.array([], dtype=np.int32)
         digits = self._test_digits if test else self._train_digits
         inputs_per_label = self._test_inputs_per_label if test else self._train_inputs_per_label
 
@@ -67,22 +70,38 @@ class MnistMetaSampler(MetaSampler):
             n_tasks_to_add = min(len(tasks_to_add), tasks_remaining)
             tasks.extend(tasks_to_add[:n_tasks_to_add])            
 
-        for task in tasks:
-            task_ids = np.array([], dtype=np.int32)
-            task_labels = np.array([], dtype=np.int32)
-            for i, label in enumerate(task):
-                label_ids = np.random.choice(inputs_per_label[label], self._batch_size)
-                labels = np.empty(self._batch_size, dtype=np.int32)
-                labels.fill(i)
-                task_labels = np.append(task_labels, labels)
-                task_ids = np.append(task_ids, label_ids)
-            all_labels = np.append(all_labels, task_labels)
-            all_ids = np.append(all_ids, task_ids)
-        all_ids_sym = tf.convert_to_tensor(all_ids)
+        num_inputs_per_meta_batch = (self._batch_size * 
+            self._num_classes_per_batch * self._meta_batch_size)
+        
+        ids = np.empty((0, num_inputs_per_meta_batch), dtype=np.int32)
+        lbls = np.empty((0, num_inputs_per_meta_batch), dtype=np.int32)
+
+        data_size = self._test_size if test else self._train_size
+        data_size = data_size // num_inputs_per_meta_batch
+        data_size = min(data_size, 1000)
+                        
+        for i in range(data_size):
+            all_ids = np.array([], dtype=np.int32)
+            all_labels = np.array([], dtype=np.int32)
+            for task in tasks:
+                task_ids = np.array([], dtype=np.int32)
+                task_labels = np.array([], dtype=np.int32)
+                for i, label in enumerate(task):
+                    label_ids = np.random.choice(inputs_per_label[label], self._batch_size)
+                    labels = np.empty(self._batch_size, dtype=np.int32)
+                    labels.fill(i)
+                    task_labels = np.append(task_labels, labels)
+                    task_ids = np.append(task_ids, label_ids)
+                all_labels = np.append(all_labels, task_labels)
+                all_ids = np.append(all_ids, task_ids)
+            ids = np.append(ids, [all_ids], axis=0)
+            lbls = np.append(lbls, [all_labels], axis=0)
+
+        all_ids_sym = tf.convert_to_tensor(ids)
         inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
         all_inputs = tf.gather(inputs_sym, all_ids_sym)
         all_labels = tf.convert_to_tensor(
-            all_labels, dtype=tf.dtypes.int32)
+            lbls, dtype=tf.dtypes.int32)
         if self._one_hot_labels:
             all_labels = tf.one_hot(all_labels, depth=10)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))

@@ -5,12 +5,12 @@ from tensorflow.keras import layers
 from mlgm.layers import Dropout
 
 from mlgm.algo import Maml
-from mlgm.sampler import MnistMetaSampler
+from mlgm.sampler import FashionMnistMetaSampler
 from mlgm.model import Vae
 from mlgm.logger import Logger
 
 def main():
-    metasampler = MnistMetaSampler(
+    metasampler = FashionMnistMetaSampler(
         batch_size=5,
         meta_batch_size=7,
         train_digits=list(range(7)),
@@ -38,7 +38,7 @@ def main():
             latent_dim=latent_dim,
             sess=sess)
       
-        logger = Logger("maml_vae", save_period=1900)
+        logger = Logger("maml_vae_fashion", save_period=1900)
 
         maml = Maml(
             model,

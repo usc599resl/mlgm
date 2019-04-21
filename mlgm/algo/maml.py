@@ -17,8 +17,8 @@ class Maml:
                  model,
                  metasampler,
                  sess,
+                 logger,
                  compute_acc=True,
-                 name="maml",
                  num_updates=1,
                  update_lr=0.0001,
                  meta_lr=0.0001):
@@ -29,7 +29,7 @@ class Maml:
         self._num_updates = num_updates        
         self._update_lr = update_lr
         self._meta_lr = meta_lr
-        self._logger = Logger(name) 
+        self._logger = logger 
         self._init_variables()
         self._build()        
         self._logger.add_graph(self._sess.graph)        
@@ -116,7 +116,7 @@ class Maml:
         return loss_a, acc_a, losses_b, accs_b
 
     def _compute_metatrain(self, handle):
-        loss_a, losses_b, _ = self._sess.run(
+        loss_a, losses_b, _ = self._sess.run(            
             [self._loss_a, self._losses_b, self._metatrain_op], 
             feed_dict={self._handle: handle})
         return loss_a, losses_b
@@ -130,8 +130,8 @@ class Maml:
         return self._sess.run([
             self._input_b, self._outputsb, self._loss_a, self._losses_b],
             feed_dict={self._handle: handle})     
-
-    def test(self, test_itr, restore_model_path):
+            
+    def test(self, test_itr, restore_model_path, log_images=True):
         assert restore_model_path
 
         self._sess.run(tf.global_variables_initializer())
@@ -139,9 +139,9 @@ class Maml:
         self._model.restore_model(restore_model_path)
 
         _, test_handle = self._metasampler.init_iterators(self._sess)
-        self._test(test_itr, test_handle, 0, True)
+        self._test(test_itr, test_handle, 0, log_images)
 
-    def train(self, train_itr, test_itr, test_interval, restore_model_path):
+    def train(self, train_itr, test_itr, test_interval, restore_model_path, log_images=True):
         self._sess.run(tf.global_variables_initializer())
         self._sess.run(tf.local_variables_initializer())
         if restore_model_path:
@@ -156,7 +156,7 @@ class Maml:
                     acc_a = np.mean(acc_a)
                     accs_b = np.array(accs_b).mean(axis=1)                    
                 else:
-                    loss_a, losses_b = self._compute_metatrain(train_handle)
+                    loss_a, losses_b = self._compute_metatrain(train_handle)                    
 
                 loss_a = np.mean(loss_a)
                 losses_b = np.array(losses_b).mean(axis=1)
@@ -172,7 +172,8 @@ class Maml:
                 self._metasampler.restart_train_dataset(self._sess)
 
             if i % test_interval == 0:
-                log_images = (i + test_interval) >= train_itr
+                test_img_interval = test_interval * 2
+                log_images = (i % test_img_interval) == 0
                 self._test(test_itr, test_handle, i, log_images)                
 
         self._logger.close()

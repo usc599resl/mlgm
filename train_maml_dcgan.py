@@ -19,7 +19,8 @@ with tf.Session() as sess:
         sess,
         name="maml_dcgan",
         num_updates=2,
-        update_lr=1e-5,
-        meta_lr=1e-5,
-        metatrain_iterations=1000)
+        update_lr=1e-7,
+        meta_lr=1e-6,
+        pretrain_iterations=1000,
+        metatrain_iterations=10000)
     algo.train()

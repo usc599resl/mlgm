@@ -34,6 +34,7 @@ class Cifar10MetaSampler(MetaSampler):
             train_inputs = np.array(train_batch[b'data']).reshape(-1, 3, 32,
                                                               32).transpose(
                                                                   0, 2, 3, 1)
+            train_inputs = (train_inputs / 127.5) - 1
             train_labels = np.array(train_batch[b'labels'])
             for train_class in self._train_classes:
                 ids = np.argwhere(train_class == train_labels).reshape(-1)
@@ -45,6 +46,7 @@ class Cifar10MetaSampler(MetaSampler):
             test_inputs = np.array(test_batch[b'data']).reshape(-1, 3, 32,
                                                                 32).transpose(
                                                                     0, 2, 3, 1)
+            test_inputs = (test_inputs / 127.5) - 1
             test_labels = np.array(test_batch[b'labels'])
             for test_class in self._test_classes:
                 ids = np.argwhere(test_class == test_labels).reshape(-1)
@@ -66,11 +68,11 @@ class Cifar10MetaSampler(MetaSampler):
             self._test_inputs_per_label, self._test_classes, self._test_inputs)
         return dataset_sym, num_tasks
 
-    def _gen_metadata(self, inputs_per_label, digits, inputs):
+    def _gen_metadata(self, inputs_per_label, classes, inputs):
         all_ids = np.array([], dtype=np.int32)
         all_labels = np.array([], dtype=np.int32)
         num_tasks = 0
-        for task in permutations(digits, self._num_classes_per_batch):
+        for task in permutations(classes, self._num_classes_per_batch):
             task_ids = np.array([], dtype=np.int32)
             task_labels = np.array([], dtype=np.int32)
             for i, label in enumerate(task):
@@ -84,7 +86,7 @@ class Cifar10MetaSampler(MetaSampler):
             all_ids = np.append(all_ids, task_ids)
             num_tasks += 1
         all_ids_sym = tf.convert_to_tensor(all_ids)
-        inputs_sym = tf.convert_to_tensor(inputs, dtype=tf.int32)
+        inputs_sym = tf.convert_to_tensor(inputs)
         all_inputs_sym = tf.gather(inputs_sym, all_ids_sym)
         all_labels_sym = tf.convert_to_tensor(
             all_labels, dtype=tf.dtypes.int32)

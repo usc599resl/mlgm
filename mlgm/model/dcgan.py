@@ -138,6 +138,26 @@ class DcGan(Model):
 
         return d_loss, g_loss
 
+    def build_gradients(self, loss_sym, fast_params=None):
+        d_loss = loss_sym[0]
+        g_loss = loss_sym[1]
+        grads = {}
+        params = {}
+
+        if not fast_params:
+            gen_grads, gen_params = self._generator.build_gradients(
+                g_loss, fast_params)
+            dis_grads, dis_params = self._discriminator.build_gradients(
+                d_loss, fast_params)
+            grads.update(gen_grads)
+            grads.update(dis_grads)
+            params.update(gen_params)
+            params.update(dis_params)
+        else:
+            grads, params = super(DcGan, self).build_gradients(
+                loss_sym, fast_params)
+        return grads, params
+
     def get_variables(self):
         variables = {}
         variables["generator"] = self._generator.get_variables()

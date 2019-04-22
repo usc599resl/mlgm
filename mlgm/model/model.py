@@ -39,11 +39,12 @@ class Model:
             tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
 
     def _set_tensors(self, layer_in, layer, use_tensors, training=False):
-        supported_types = [
+        kernel_supported_types = [
             tf.keras.layers.Dense, tf.keras.layers.Conv2D,
             tf.keras.layers.Conv2DTranspose
         ]
-        if type(layer) in supported_types:
+        norm_supported_types = [tf.keras.layers.BatchNormalization]
+        if type(layer) in kernel_supported_types:
             if (layer.kernel.name in use_tensors) and (
                     layer.bias.name in use_tensors):
                 kernel_var = layer.kernel
@@ -54,6 +55,20 @@ class Model:
                     layer, layer_in, training=training)
                 layer.kernel = kernel_var
                 layer.bias = bias_var
+            else:
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
+        elif type(layer) in norm_supported_types:
+            if (layer.gamma.name in use_tensors) and (
+                    layer.beta.name in use_tensors):
+                gamma_var = layer.gamma
+                beta_var = layer.beta
+                layer.gamma = use_tensors[layer.gamma.name]
+                layer.beta = use_tensors[layer.beta.name]
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
+                layer.gamma = gamma_var
+                layer.beta = beta_var
             else:
                 layer_out = self._call_layer(
                     layer, layer_in, training=training)
@@ -106,7 +121,7 @@ class Model:
                 grads.update({name: tf.gradients(loss_sym, w)[0]})
         else:
             for param in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name_scope):
+                    tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope):
                 params.update({param.name: param})
                 grads.update({param.name: tf.gradients(loss_sym, param)[0]})
         return grads, params

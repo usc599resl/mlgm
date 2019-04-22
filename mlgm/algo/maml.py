@@ -90,6 +90,8 @@ class Maml:
                       label_b,
                       update_lr,
                       fast_weights=None):
+        # import ipdb
+        # ipdb.set_trace()
         values = [input_a, label_a, input_b, label_b, update_lr]
         loss_a = None
         loss_b = None
@@ -98,14 +100,21 @@ class Maml:
             loss_a = self._model.build_loss(label_a, output_a)
             acc_a = self._model.build_accuracy(label_a, output_a)
             grads, weights = self._model.build_gradients(loss_a, fast_weights)
+            # import ipdb
+            # ipdb.set_trace()
             with tf.variable_scope("fast_weights", values=[weights, grads]):
-                new_fast_weights = {
-                    w: weights[w] - update_lr * grads[w]
-                    for w in weights
-                }
+                new_fast_weights = {}
+                for w in weights:
+                    if grads[w] is None:
+                        new_fast_weights[w] = tf.identity(weights[w])
+                        # print(w, new_fast_weights[w])
+                    else:
+                        new_fast_weights[w] = weights[w] - update_lr * grads[w]
             output_b = self._model.build_forward_pass(input_b,
                                                       new_fast_weights)
             loss_b = self._model.build_loss(label_b, output_b)
+            # import ipdb
+            # ipdb.set_trace()
             acc_b = self._model.build_accuracy(label_b, output_b)
         return output_b, loss_a, acc_a, loss_b, acc_b, new_fast_weights
 

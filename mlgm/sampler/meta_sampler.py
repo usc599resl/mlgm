@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-import ipdb
 
 class MetaSampler:
     def __init__(self, batch_size, meta_batch_size, inputs, num_classes_per_batch):

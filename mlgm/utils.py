@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import io
@@ -9,9 +8,13 @@ def gen_fig(sess, input_imgs, gen_imgs):
         nrows = 2
         ncolumns = input_imgs.shape[0]
         plt.subplot(nrows, ncolumns, (i + 1))
-        plt.imshow(input_img[0], cmap='gray')
+        plt.imshow(input_img[0])
+        # import ipdb
+        # ipdb.set_trace()
+        # plt.imshow(input_img[0][:,:,0], cmap='gray')
         plt.subplot(nrows, ncolumns, ncolumns + (i + 1))
-        plt.imshow(gen_img[0].reshape(28, 28), cmap='gray')
+        plt.imshow(gen_img[0].reshape(32, 32, 3))
+        # plt.imshow(gen_img[0].reshape(32, 32), cmap='gray')
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)

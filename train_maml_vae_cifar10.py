@@ -22,14 +22,14 @@ def main():
         model = Vae(
             encoder_layers=[
                 layers.Reshape((32, 32, 3)),
-                layers.Conv2D(filters=32,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
-                layers.BatchNormalization(trainable=False),
+                layers.Conv2D(filters=3,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
+                layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
-                layers.Conv2D(filters=64,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
-                layers.BatchNormalization(trainable=False),
+                layers.Conv2D(filters=64,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
+                layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
-                layers.Conv2D(filters=128,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
-                layers.BatchNormalization(trainable=False),
+                layers.Conv2D(filters=64,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
+                layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Flatten(),
                 layers.Dense(units=(latent_dim + latent_dim))
@@ -38,10 +38,10 @@ def main():
                 layers.Dense(units=4 * 4 * 64, activation=tf.nn.relu),
                 layers.Reshape(target_shape=(4, 4, 64)),
                 layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
-                layers.BatchNormalization(trainable=False),
+                layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
-                layers.BatchNormalization(trainable=False),
+                layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=3, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
                 layers.Activation('sigmoid'),
@@ -67,7 +67,7 @@ def main():
         #     latent_dim=latent_dim,
         #     sess=sess)
       
-        logger = Logger("maml_vae_cifar10", save_period=1900)
+        logger = Logger("maml_vae_cifar10", save_period=1000)
 
         maml = Maml(
             model,
@@ -80,18 +80,19 @@ def main():
             meta_lr=0.0001)
          
         maml.train(
-            train_itr=2000, 
+            train_itr=5000, 
             test_itr=1,
             test_interval=100,
             restore_model_path=None,
         )  
         
-        '''             
-        maml.test(
-            test_itr=1,
-            restore_model_path='./data/maml_vae/maml_vae_22_42_04_16_19/itr_1950'
-        )
-        '''
+        # restore_model_path = logger._log_path
+          
+        # maml.test(
+        #     test_itr=1,
+        #     restore_model_path=restore_model_path
+        # )
+        
         
         
 if __name__ == "__main__":

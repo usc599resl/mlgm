@@ -6,6 +6,7 @@ from mlgm.layers import Dropout
 
 from mlgm.algo import Maml
 from mlgm.sampler import Cifar10MetaSampler
+from mlgm.sampler import MnistMetaSampler
 from mlgm.model import Vae
 from mlgm.logger import Logger
 
@@ -17,8 +18,37 @@ def main():
         test_digits=list(range(7, 10)),        
         num_classes_per_batch=1,
         same_input_and_label=True)    
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         latent_dim = 16
+        # model = Vae(
+        #     encoder_layers=[
+        #         layers.Reshape((28, 28, 1)),
+        #         layers.Conv2D(filters=32,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
+        #         layers.BatchNormalization(trainable=True),
+        #         layers.Activation('relu'),
+        #         layers.Conv2D(filters=64,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
+        #         layers.BatchNormalization(trainable=True),
+        #         layers.Activation('relu'),
+        #         layers.Conv2D(filters=128,kernel_size=3,strides=(2, 2),padding='same', data_format="channels_last"),
+        #         layers.BatchNormalization(trainable=True),
+        #         layers.Activation('relu'),
+        #         layers.Flatten(),
+        #         layers.Dense(units=(latent_dim + latent_dim))
+        #     ],
+        #     decoder_layers=[
+        #         layers.Dense(units=7 * 7 * 32, activation=tf.nn.relu),
+        #         layers.Reshape(target_shape=(7, 7, 32)),
+        #         layers.Conv2DTranspose(filters=256,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
+        #         layers.BatchNormalization(trainable=True),
+        #         layers.Activation('relu'),
+        #         layers.Conv2DTranspose(filters=128,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
+        #         layers.BatchNormalization(trainable=True),
+        #         layers.Activation('relu'),
+        #         layers.Conv2DTranspose(filters=1, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
+        #         # layers.Activation('sigmoid'),
+        #     ],
+        #     latent_dim=latent_dim,
+        #     sess=sess)
         model = Vae(
             encoder_layers=[
                 layers.Reshape((32, 32, 3)),
@@ -28,23 +58,23 @@ def main():
                 layers.Conv2D(filters=64,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
-                layers.Conv2D(filters=64,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
+                layers.Conv2D(filters=128,kernel_size=4,strides=(2, 2),padding='same', data_format="channels_last"),
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Flatten(),
                 layers.Dense(units=(latent_dim + latent_dim))
             ],
             decoder_layers=[
-                layers.Dense(units=4 * 4 * 64, activation=tf.nn.relu),
-                layers.Reshape(target_shape=(4, 4, 64)),
-                layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
+                layers.Dense(units=4 * 4 * 128, activation=tf.nn.relu),
+                layers.Reshape(target_shape=(4, 4, 128)),
+                layers.Conv2DTranspose(filters=128,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME", data_format="channels_last"),
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=3, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
-                layers.Activation('sigmoid'),
+                # layers.Activation('sigmoid'),
             ],
             latent_dim=latent_dim,
             sess=sess)

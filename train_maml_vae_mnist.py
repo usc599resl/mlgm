@@ -47,8 +47,8 @@ def main():
             logger,
             compute_acc=False,
             num_updates=5,
-            update_lr=0.001,
-            meta_lr=0.0001)
+            update_lr=0.01,
+            meta_lr=0.001)
          
         maml.train(
             train_itr=2000, 

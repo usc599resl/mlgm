@@ -62,7 +62,8 @@ class Vae(Model):
         logpz = self._log_normal_pdf(self._latent_sym, 0., 0.)
         logqz_x = self._log_normal_pdf(self._latent_sym, self._mean_sym,
                                        self._logvar_sym)
-        return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+        return -tf.reduce_mean(1e-3 * logpx_z + logpz - logqz_x)
+        # return -tf.reduce_mean(logpz - logqz_x)
 
     def build_accuracy(self, labels, logits, name=None):
         return 0.

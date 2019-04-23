@@ -101,7 +101,7 @@ class Cifar10MetaSampler(MetaSampler):
         inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
         all_inputs = tf.gather(inputs_sym, all_ids_sym)
         all_labels = tf.convert_to_tensor(
-            lbls, dtype=tf.dtypes.int32)
+            lbls, dtype=tf.int32)
         if self._one_hot_labels:
             all_labels = tf.one_hot(all_labels, depth=10)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))
@@ -129,4 +129,9 @@ class Cifar10MetaSampler(MetaSampler):
                                [-1, slice_size, -1])
             label_b = tf.slice(label_batches, [0, slice_size, 0],
                                [-1, -1, -1])
+
+        # sess = tf.get_default_session()
+        # res = sess.run(input_a, feed_dict={handle:})
+        # import ipdb
+        # ipdb.set_trace()
         return input_a, label_a, input_b, label_b

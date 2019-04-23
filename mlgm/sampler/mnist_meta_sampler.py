@@ -101,7 +101,7 @@ class MnistMetaSampler(MetaSampler):
         inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
         all_inputs = tf.gather(inputs_sym, all_ids_sym)
         all_labels = tf.convert_to_tensor(
-            lbls, dtype=tf.dtypes.int32)
+            lbls, dtype=tf.int32)
         if self._one_hot_labels:
             all_labels = tf.one_hot(all_labels, depth=10)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))
@@ -111,8 +111,8 @@ class MnistMetaSampler(MetaSampler):
         slice_size = (self._batch_size // 2) * self._num_classes_per_batch
         input_batches, label_batches = self._gen_metadata(handle)
 
-        import ipdb
-        ipdb.set_trace()
+        # import ipdb
+        # ipdb.set_trace()
         
         input_a = tf.slice(input_batches, [0, 0, 0, 0],
                            [-1, slice_size, -1, -1])

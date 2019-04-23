@@ -45,5 +45,5 @@ class Cifar10Sampler(Sampler):
             y_test_oh = np.zeros(y_test.shape + (10, ))
             y_test_oh[np.arange(y_test.size), y_test] = 1
             y_test = y_test_oh
-        super().__init__(x_train, y_train, x_test, y_test, batch_size)
+        super().__init__(x_train, x_train, x_test, x_test, batch_size)
 

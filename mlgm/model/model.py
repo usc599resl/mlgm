@@ -30,9 +30,10 @@ class Model:
         self._y = tf.placeholder(**self._param_out)
         self._out = self.build_forward_pass(self._x)
         loss_sym = self.build_loss(self._y, self._out)
+        self._loss = loss_sym
         gradients_sym, weights_sym = self.build_gradients(loss_sym)
         self.build_apply_gradients(gradients_sym, weights_sym)
-        self._acc = self.build_accuracy(self._y, self._out)
+        # self._acc = self.build_accuracy(self._y, self._out)
 
     def get_variables(self):
         return tf.get_collection(

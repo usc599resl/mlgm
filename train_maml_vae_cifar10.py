@@ -9,6 +9,7 @@ from mlgm.sampler import Cifar10MetaSampler
 from mlgm.model import Vae
 from mlgm.logger import Logger
 
+
 def main():
     metasampler = Cifar10MetaSampler(
         batch_size=5,
@@ -44,28 +45,9 @@ def main():
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=3, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
-                # layers.Activation('sigmoid'),
             ],
             latent_dim=latent_dim,
             sess=sess)
-        # model = Vae(
-        #     encoder_layers=[
-        #         layers.Reshape((32, 32, 1)),
-        #         layers.Conv2D(filters=32,kernel_size=3,strides=(2, 2),padding='same',activation="relu", data_format="channels_last"),
-        #         layers.Conv2D(filters=64,kernel_size=3,strides=(2, 2),padding='same',activation="relu", data_format="channels_last"),
-        #         layers.Conv2D(filters=128,kernel_size=3,strides=(2, 2),padding='same',activation="relu", data_format="channels_last"),
-        #         layers.Flatten(),
-        #         layers.Dense(units=(latent_dim + latent_dim))
-        #     ],
-        #     decoder_layers=[
-        #         layers.Dense(units=4 * 4 * 64, activation=tf.nn.relu),
-        #         layers.Reshape(target_shape=(4, 4, 64)),
-        #         layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME",activation='relu', data_format="channels_last"),
-        #         layers.Conv2DTranspose(filters=64,kernel_size=4,strides=(2, 2),padding="SAME",activation='relu', data_format="channels_last"),
-        #         layers.Conv2DTranspose(filters=1, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
-        #     ],
-        #     latent_dim=latent_dim,
-        #     sess=sess)
       
         logger = Logger("maml_vae_cifar10", save_period=2499)
 
@@ -91,8 +73,6 @@ def main():
         #     test_itr=1,
         #     restore_model_path='./data/maml_vae_cifar10/maml_vae_cifar10_2019_04_23_00_10_56_512339_/itr_4998',
         # )
-        
-        
         
 if __name__ == "__main__":
     main()

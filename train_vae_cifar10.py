@@ -37,7 +37,6 @@ def main():
                 layers.BatchNormalization(trainable=True),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(filters=3, kernel_size=4, strides=(2, 2), padding="SAME", data_format="channels_last"),
-                # layers.Activation('sigmoid'),
             ],
             latent_dim=latent_dim,
             sess=sess)
@@ -62,7 +61,6 @@ def main():
             logger.add_value("loss", loss)
             logger.dump_summary(itr)
         logger.save_tf_variables(model.get_variables(), itr, sess)
-      
         logger = Logger("maml_vae_cifar10", save_period=2499)
         
         

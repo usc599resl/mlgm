@@ -127,8 +127,9 @@ class Maml:
             feed_dict={self._handle: handle})
 
     def _compute_metatest(self, handle):
+        outputsb = tf.nn.sigmoid(self._outputsb)
         return self._sess.run([
-            self._input_b, self._outputsb, self._loss_a, self._losses_b],
+            self._input_b, outputsb, self._loss_a, self._losses_b],
             feed_dict={self._handle: handle})     
             
     def test(self, test_itr, restore_model_path, log_images=True):
@@ -149,7 +150,7 @@ class Maml:
 
         train_handle, test_handle = self._metasampler.init_iterators(self._sess)
 
-        for i in range(train_itr):
+        for i in range(1, train_itr + 1):
             try:
                 if self._compute_acc:
                     loss_a, acc_a, losses_b, accs_b = self._compute_metatrain_and_acc(train_handle)                    

@@ -4,5 +4,6 @@ __pycache__/
 # Model parameters and data
 data/
 dataset/
+model/
 # Text Editors
 *.swp

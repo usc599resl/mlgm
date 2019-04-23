@@ -60,7 +60,7 @@ class OmniglotMetaSampler(MetaSampler):
         for digit in self._test_digits:
             ids = np.where(digit == labels)[0]
             self._test_size += len(ids)
-            random.shuffle(ids)
+            # random.shuffle(ids)
             self._test_inputs_per_label.update({digit: ids})
         
         super().__init__(batch_size, meta_batch_size, inputs, num_classes_per_batch)
@@ -89,7 +89,13 @@ class OmniglotMetaSampler(MetaSampler):
         data_size = self._test_size if test else self._train_size
         data_size = data_size // num_inputs_per_meta_batch
         data_size = min(data_size, 1000)
-                        
+
+        ###################
+        # For making test data deterministic
+        cur_ptr = {}
+        for task in tasks:
+            cur_ptr[task[0]] = 0
+        ###################
         for i in range(data_size):
             all_ids = np.array([], dtype=np.int32)
             all_labels = np.array([], dtype=np.int32)
@@ -97,7 +103,13 @@ class OmniglotMetaSampler(MetaSampler):
                 task_ids = np.array([], dtype=np.int32)
                 task_labels = np.array([], dtype=np.int32)
                 for i, label in enumerate(task):
-                    label_ids = np.random.choice(inputs_per_label[label], self._batch_size)
+                    if test:
+                        if (cur_ptr[label]+1)*self._batch_size > len(inputs_per_label[label]):
+                            cur_ptr[label] = 0
+                        label_ids = inputs_per_label[label][cur_ptr[label]*self._batch_size:(cur_ptr[label]+1)*self._batch_size]
+                        cur_ptr[label] += 1
+                    else:
+                        label_ids = np.random.choice(inputs_per_label[label], self._batch_size)
                     labels = np.empty(self._batch_size, dtype=np.int32)
                     labels.fill(i)
                     task_labels = np.append(task_labels, labels)
@@ -107,11 +119,20 @@ class OmniglotMetaSampler(MetaSampler):
             ids = np.append(ids, [all_ids], axis=0)
             lbls = np.append(lbls, [all_labels], axis=0)
 
+        # feed the ids of the images you want
+        # batch_size = 5, meta_batch_size = 7
+        if test:
+            indices = np.arange(5, 75, 10)
+            # target_image_ids = np.arange(5192, 5199)
+            target_image_ids = [3649, 4168, 5199, 4174, 3652, 3655, 4170]
+
+            for ind, target_ind in zip(indices, target_image_ids):
+                ids[4][ind] = target_ind
         all_ids_sym = tf.convert_to_tensor(ids)
         inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
         all_inputs = tf.gather(inputs_sym, all_ids_sym)
         all_labels = tf.convert_to_tensor(
-            lbls, dtype=tf.dtypes.int32)
+            lbls, dtype=tf.int32)
         if self._one_hot_labels:
             all_labels = tf.one_hot(all_labels, depth=self._num_of_class)
         dataset_sym = tf.data.Dataset.from_tensor_slices((all_inputs, all_labels))

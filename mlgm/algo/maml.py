@@ -158,8 +158,8 @@ class Maml:
 
         train_handle, test_handle = self._metasampler.init_iterators(self._sess)
 
-        sess = tf.get_default_session()
-        res = sess.run(self._label_a, feed_dict={self._handle:train_handle})
+        # sess = tf.get_default_session()
+        # res = sess.run(self._label_a, feed_dict={self._handle:train_handle})
         # import ipdb
         # ipdb.set_trace()
 

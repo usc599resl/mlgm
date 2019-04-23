@@ -13,12 +13,13 @@ class Logger:
     :params graph: tf.Graph, the computation graph of the model.
     :params save_period: int, the frequency of flush the logger.
     """
-    def __init__(self, exp_name, graph=None, save_period=50):
+    def __init__(self, exp_name, graph=None, save_period=50, std_out_period=50):
         self._log_path = 'data/{0}/{0}_{1}'.format(exp_name, datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f_%Z'))
         self._writer = summ.FileWriter(self._log_path, graph)
         self._summary_mrg = None
         self._writer.flush()
         self._save_period = save_period
+        self._std_out_period = std_out_period
 
     def new_summary(self):
         self._summary = tf.Summary()
@@ -52,7 +53,7 @@ class Logger:
     def dump_summary(self, itr):
         self._writer.add_summary(self._summary, itr)
         self._writer.flush()
-        if not (itr % self._save_period) and itr > 0:
+        if not (itr % self._std_out_period) and itr > 0:
             print('--------------------------------------------------')
             print('exp_name: {}'.format(self._log_path))
             print('itr: {}'.format(itr))

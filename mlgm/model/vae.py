@@ -58,11 +58,17 @@ class Vae(Model):
     def build_loss(self, labels, logits):
         cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(
             logits=logits, labels=labels)
+        # epsilon = 1e-10
+        # logpx_z = -tf.reduce_sum(
+        #     labels * tf.log(epsilon + logits) + 
+        #     (1 - labels) * tf.log(epsilon + 1 - logits), 
+        #     axis=[1, 2, 3],
+        # )
         logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
         logpz = self._log_normal_pdf(self._latent_sym, 0., 0.)
         logqz_x = self._log_normal_pdf(self._latent_sym, self._mean_sym,
                                        self._logvar_sym)
-        return -tf.reduce_mean(1e-3 * logpx_z + logpz - logqz_x)
+        return -tf.reduce_mean(1e-2 * logpx_z + logpz - logqz_x)
         # return -tf.reduce_mean(logpz - logqz_x)
 
     def build_accuracy(self, labels, logits, name=None):

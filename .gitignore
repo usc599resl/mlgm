@@ -3,3 +3,4 @@ data/
 dataset/
 *__pycache__/
 results.png
+image_without_MAML/

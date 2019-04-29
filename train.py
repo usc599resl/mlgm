@@ -87,7 +87,7 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	dataset = 'omniglot' # mnist / fashionmnist / omniglot
+	dataset = 'fashionmnist' # mnist / fashionmnist / omniglot
 	load_from = 'omniglot'
 	data_loader = DataLoader(dataset=dataset)
 	model = VAE(input_dim=data_loader.input_dim, latent_dim=32)
@@ -107,7 +107,7 @@ if __name__=="__main__":
 		with tf.device('cpu:0'):
 			saver = tf.train.Saver()
 		# uncomment to use GPU
-		# with tf.device('gpu:0'):
+		with tf.device('gpu:0'):
 			sess.run(tf.global_variables_initializer())
 
 			if load_model:

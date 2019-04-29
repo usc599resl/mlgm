@@ -4,13 +4,24 @@ import scipy.io
 
 
 class DataLoader:
-	def __init__(self, dataset):
+	def __init__(self, dataset, training_digits=list(range(7)), testing_digits=[7,8,9]):
 		dataset = dataset.lower()
 		assert dataset in ['mnist', 'svhn']
 		self.dataset_in_rgb = False
 		if dataset == 'mnist':
+			self._training_digits = training_digits
+			self._testing_digits = testing_digits
 			mnist = tf.keras.datasets.mnist
 			(x_train, y_train),(x_test, y_test) = mnist.load_data()
+			for i in range(10):
+				if i not in self._training_digits:
+					remove_train_indices = np.where(y_train == i)[0]
+					x_train = np.delete(x_train, remove_train_indices, axis=0)
+					y_train = np.delete(y_train, remove_train_indices, axis=0)
+				if i not in self._testing_digits:
+					remove_test_indices = np.where(y_test == i)[0]
+					x_test = np.delete(x_test, remove_test_indices, axis=0)
+					y_test = np.delete(y_test, remove_test_indices, axis=0)
 			self.x_train = self.preprocess(x_train)
 			self.y_train = y_train
 			self.x_test = self.preprocess(x_test)
@@ -48,3 +59,6 @@ class DataLoader:
 		else:
 			indices = np.random.choice(self.num_train_sample, sample_size)
 			return self.x_train[indices].reshape(sample_size, -1), self.y_train[indices].squeeze()
+
+	def get_fixed_sample(self, indices):
+		return self.x_test[indices].reshape(sample_size, -1)

@@ -1,5 +1,5 @@
-/MNIST_data
-/SVHN_data
-/model
-/data
-/__pycache__
+model/
+data/
+dataset/
+*__pycache__/
+results.png

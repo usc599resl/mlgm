@@ -8,26 +8,21 @@ from vae import VAE
 from dataloader import DataLoader
 
 
-def test_reconstruction(model, data_loader, batch_size=100):
-    batch = data_loader.sample(batch_size, test=True)
+def test_reconstruction(model, data_loader, batch_size=7):
+    # batch = data_loader.sample(batch_size, test=True)
+    batch = data_loader.get_fixed_sample([3700, 3701, 3702, 3703, 3704, 3705, 3706])
     x_reconstructed = model.reconstruct(batch)
 
-    n = np.sqrt(batch_size).astype(np.int32)
     w = data_loader.sample_shape[0]
     h = data_loader.sample_shape[1]
     if data_loader.dataset_in_rgb:
         c = data_loader.sample_shape[2]
-        I_reconstructed = np.empty((h*n, 2*w*n, c))
+        I_reconstructed = np.empty((h*2, w*batch_size, c))
     else:
-        I_reconstructed = np.empty((h*n, 2*w*n))
-    for i in range(n):
-        for j in range(n):
-            x = np.concatenate(
-                (x_reconstructed[i*n+j, :].reshape(data_loader.sample_shape), 
-                 batch[i*n+j, :].reshape(data_loader.sample_shape)),
-                axis=1
-            )
-            I_reconstructed[i*h:(i+1)*h, j*2*w:(j+1)*2*w] = x
+        I_reconstructed = np.empty((h*2, w*batch_size))
+    for i in range(batch_size):
+        I_reconstructed[:h, i*w:(i+1)*w] = batch[i, :].reshape(data_loader.sample_shape)
+        I_reconstructed[h:, i*w:(i+1)*w] = x_reconstructed[i, :].reshape(data_loader.sample_shape)
 
     plt.figure(figsize=(10, 20))
     plt.title('Odd column is generated image. Column number starts with 1')
@@ -88,12 +83,12 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	data_loader = DataLoader(dataset='svhn') # or 'mnist'
-	model = VAE(input_dim=data_loader.input_dim, latent_dim=16)
+	data_loader = DataLoader(dataset='mnist') # or 'mnist'
+	model = VAE(input_dim=data_loader.input_dim, latent_dim=32)
 
 	log_step = 10
 	batch_size = 32
-	num_epoch = 1
+	num_epoch = 200
 	epoch_cycle = 100
 
 	parser = argparse.ArgumentParser()
@@ -106,7 +101,7 @@ if __name__=="__main__":
 		with tf.device('cpu:0'):
 			saver = tf.train.Saver()
 		# uncomment to use GPU
-		# with tf.device('gpu:0'):
+		with tf.device('gpu:0'):
 			sess.run(tf.global_variables_initializer())
 
 			if load_model:

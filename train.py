@@ -10,16 +10,18 @@ from dataloader import DataLoader
 
 def test_reconstruction(model, data_loader, batch_size=7):
     # batch = data_loader.sample(batch_size, test=True)
-    batch = data_loader.get_fixed_sample([3700, 3701, 3702, 3703, 3704, 3705, 3706])
+    # fixed testing images
+    ind = {
+    	'mnist': [1404, 806, 798, 1519, 930, 884, 1666],
+    	'fashionmnist': [1234, 867, 770, 1360, 962, 848, 1475],
+    	'omniglot': [3649, 4168, 5199, 4174, 3652, 3655, 4170]}
+    indices = ind[data_loader.dataset]
+    batch = data_loader.get_fixed_sample(batch_size, indices)
     x_reconstructed = model.reconstruct(batch)
 
     w = data_loader.sample_shape[0]
     h = data_loader.sample_shape[1]
-    if data_loader.dataset_in_rgb:
-        c = data_loader.sample_shape[2]
-        I_reconstructed = np.empty((h*2, w*batch_size, c))
-    else:
-        I_reconstructed = np.empty((h*2, w*batch_size))
+    I_reconstructed = np.empty((h*2, w*batch_size))
     for i in range(batch_size):
         I_reconstructed[:h, i*w:(i+1)*w] = batch[i, :].reshape(data_loader.sample_shape)
         I_reconstructed[h:, i*w:(i+1)*w] = x_reconstructed[i, :].reshape(data_loader.sample_shape)
@@ -27,7 +29,9 @@ def test_reconstruction(model, data_loader, batch_size=7):
     plt.figure(figsize=(10, 20))
     plt.title('Odd column is generated image. Column number starts with 1')
     plt.imshow(I_reconstructed, cmap='gray')
-    plt.show()
+    plt.axis('off')
+    # plt.show()
+    plt.savefig('result_vae.png')
 
 def test_transformation(model, data_loader, batch_size=2000):
     batch, idx = data_loader.sample_with_index(batch_size)
@@ -83,12 +87,14 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	data_loader = DataLoader(dataset='mnist') # or 'mnist'
+	dataset = 'omniglot' # mnist / fashionmnist / omniglot
+	load_from = 'omniglot'
+	data_loader = DataLoader(dataset=dataset)
 	model = VAE(input_dim=data_loader.input_dim, latent_dim=32)
 
 	log_step = 10
 	batch_size = 32
-	num_epoch = 200
+	num_epoch = 500
 	epoch_cycle = 100
 
 	parser = argparse.ArgumentParser()
@@ -101,11 +107,11 @@ if __name__=="__main__":
 		with tf.device('cpu:0'):
 			saver = tf.train.Saver()
 		# uncomment to use GPU
-		with tf.device('gpu:0'):
+		# with tf.device('gpu:0'):
 			sess.run(tf.global_variables_initializer())
 
 			if load_model:
-				path = './model/vae_model.ckpt'
+				path = './model/vae_model_{}.ckpt'.format(load_from)
 				saver.restore(sess, path)
 				print("Model loaded from path: %s" % path)
 			else:
@@ -129,7 +135,7 @@ if __name__=="__main__":
 							log_str += '{}: {:.3f}  '.format(k, v)
 							log_str += '({:.3f} sec/epoch) \n'.format(end_time - start_time)
 						print(log_str)
-				save_path = saver.save(sess, "./model/vae_model.ckpt")
+				save_path = saver.save(sess, "./model/vae_model_{}.ckpt".format(dataset))
 				print("Model saved in path: %s" % save_path)
 
 			################# Function below are for visualization ####################

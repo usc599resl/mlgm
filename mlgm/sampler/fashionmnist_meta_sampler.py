@@ -112,9 +112,10 @@ class FashionMnistMetaSampler(MetaSampler):
         # batch_size = 5, meta_batch_size = 7
         if test:
             indices = np.arange(5, 75, 10)
-            target_image_ids = [3700, 3701, 3702, 3703, 3704, 3705, 3706]
+            target_image_ids = [1234, 867, 770, 1360, 962, 848, 1475]
             for ind, target_ind in zip(indices, target_image_ids):
-                ids[0][ind] = target_ind
+                ids[4][ind] = target_ind
+
         all_ids_sym = tf.convert_to_tensor(ids)
         inputs_sym = tf.convert_to_tensor(self._inputs, dtype=tf.float32)
         all_inputs = tf.gather(inputs_sym, all_ids_sym)

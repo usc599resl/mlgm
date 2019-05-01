@@ -14,17 +14,24 @@ def test_reconstruction(model, data_loader, batch_size=7):
     ind = {
     	'mnist': [1404, 806, 798, 1519, 930, 884, 1666],
     	'fashionmnist': [1234, 867, 770, 1360, 962, 848, 1475],
-    	'omniglot': [3649, 4168, 5199, 4174, 3652, 3655, 4170]}
+    	'omniglot': [3649, 4168, 5199, 4174, 3652, 3655, 4170],
+    	'cifar-10': [0,1,2,3,4,5,6]}
     indices = ind[data_loader.dataset]
     batch = data_loader.get_fixed_sample(batch_size, indices)
     x_reconstructed = model.reconstruct(batch)
 
     w = data_loader.sample_shape[0]
     h = data_loader.sample_shape[1]
-    I_reconstructed = np.empty((h*2, w*batch_size))
-    for i in range(batch_size):
-        I_reconstructed[:h, i*w:(i+1)*w] = batch[i, :].reshape(data_loader.sample_shape)
-        I_reconstructed[h:, i*w:(i+1)*w] = x_reconstructed[i, :].reshape(data_loader.sample_shape)
+    if data_loader.rgb:
+    	I_reconstructed = np.empty((h*2, w*batch_size, 3))
+    	for i in range(batch_size):
+    		I_reconstructed[:h, i*w:(i+1)*w] = batch[i, :].reshape(data_loader.sample_shape)
+    		I_reconstructed[h:, i*w:(i+1)*w] = x_reconstructed[i, :].reshape(data_loader.sample_shape)
+    else:
+    	I_reconstructed = np.empty((h*2, w*batch_size))
+    	for i in range(batch_size):
+    		I_reconstructed[:h, i*w:(i+1)*w] = batch[i, :].reshape(data_loader.sample_shape)
+    		I_reconstructed[h:, i*w:(i+1)*w] = x_reconstructed[i, :].reshape(data_loader.sample_shape)
 
     plt.figure(figsize=(10, 20))
     plt.title('Odd column is generated image. Column number starts with 1')
@@ -87,8 +94,8 @@ def get_z_range(num, n):
 	return grid_x, grid_y
 
 if __name__=="__main__":
-	dataset = 'fashionmnist' # mnist / fashionmnist / omniglot
-	load_from = 'omniglot'
+	dataset = 'cifar-10' # mnist / fashionmnist / omniglot / cifar-10
+	load_from = 'cifar-10'
 	data_loader = DataLoader(dataset=dataset)
 	model = VAE(input_dim=data_loader.input_dim, latent_dim=32)
 

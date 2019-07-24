@@ -2,4 +2,4 @@
 Meta learning for generative models.
 
 Blog ->
-https://medium.com/huggingface/from-zero-to-research-an-introduction-to-meta-learning-8e16e677f78a
+https://medium.com/@utkarshjp7/generating-images-with-few-shot-meta-learning-25bf1d301ab0#0ff9

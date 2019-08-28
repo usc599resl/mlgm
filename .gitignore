@@ -6,3 +6,9 @@ data/
 
 # Text Editors
 *.swp
+
+# Mac OS
+.DS_Store
+
+# virtualenv
+env/

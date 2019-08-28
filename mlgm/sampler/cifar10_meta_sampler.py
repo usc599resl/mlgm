@@ -3,12 +3,12 @@ import random
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.datasets import mnist
+from tensorflow.keras.datasets import cifar10
 
 from mlgm.sampler import MetaSampler
 
 
-class MnistMetaSampler(MetaSampler):
+class Cifar10MetaSampler(MetaSampler):
     def __init__(
             self,
             batch_size,
@@ -32,7 +32,7 @@ class MnistMetaSampler(MetaSampler):
         self._one_hot_labels = one_hot_labels
         self._same_input_and_label = same_input_and_label
         (train_inputs, train_labels), (test_inputs,
-                                       test_labels) = mnist.load_data()
+                                       test_labels) = cifar10.load_data()
 
         inputs = np.concatenate((train_inputs, test_inputs))
         labels = np.concatenate((train_labels, test_labels))
@@ -110,20 +110,28 @@ class MnistMetaSampler(MetaSampler):
     def build_inputs_and_labels(self, handle):
         slice_size = (self._batch_size // 2) * self._num_classes_per_batch
         input_batches, label_batches = self._gen_metadata(handle)
-
         # import ipdb
         # ipdb.set_trace()
-        
-        input_a = tf.slice(input_batches, [0, 0, 0, 0],
-                           [-1, slice_size, -1, -1])
-        input_b = tf.slice(input_batches, [0, slice_size, 0, 0],
-                           [-1, -1, -1, -1])
+
+        input_a = tf.slice(input_batches, [0, 0, 0, 0, 0],
+                           [-1, slice_size, -1, -1, -1])
+        # input_a = tf.image.rgb_to_grayscale(input_a)
+        input_b = tf.slice(input_batches, [0, slice_size, 0, 0, 0],
+                           [-1, -1, -1, -1, -1])
+        # input_b = tf.image.rgb_to_grayscale(input_b)
         if self._same_input_and_label:
-            label_a = tf.reshape(input_a, input_a.get_shape().concatenate(1))
-            label_b = tf.reshape(input_b, input_b.get_shape().concatenate(1))
+            # label_a = tf.reshape(input_a, input_a.get_shape())
+            # label_b = tf.reshape(input_b, input_b.get_shape())
+            label_a = tf.reshape(input_a, input_a.get_shape())
+            label_b = tf.reshape(input_b, input_b.get_shape())
         else:
             label_a = tf.slice(label_batches, [0, 0, 0],
                                [-1, slice_size, -1])
             label_b = tf.slice(label_batches, [0, slice_size, 0],
                                [-1, -1, -1])
+
+        # sess = tf.get_default_session()
+        # res = sess.run(input_a, feed_dict={handle:})
+        # import ipdb
+        # ipdb.set_trace()
         return input_a, label_a, input_b, label_b

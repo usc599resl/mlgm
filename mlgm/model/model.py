@@ -1,9 +1,4 @@
-from datetime import datetime
-from functools import singledispatch
-import os
-
 import tensorflow as tf
-from tensorflow.keras.layers import Layer
 
 
 class Model:
@@ -35,36 +30,65 @@ class Model:
         self._y = tf.placeholder(**self._param_out)
         self._out = self.build_forward_pass(self._x)
         loss_sym = self.build_loss(self._y, self._out)
+        self._loss = loss_sym
         gradients_sym, weights_sym = self.build_gradients(loss_sym)
         self.build_apply_gradients(gradients_sym, weights_sym)
-        self._acc = self.build_accuracy(self._y, self._out)
+        # self._acc = self.build_accuracy(self._y, self._out)
 
     def get_variables(self):
         return tf.get_collection(
             tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope)
 
-    def _set_tensors(self, layer_in, layer, use_tensors):
-        supported_types = [
+    def _set_tensors(self, layer_in, layer, use_tensors, training=False):
+        kernel_supported_types = [
             tf.keras.layers.Dense, tf.keras.layers.Conv2D,
             tf.keras.layers.Conv2DTranspose
         ]
-        if type(layer) in supported_types:
+        norm_supported_types = [tf.keras.layers.BatchNormalization]
+        if type(layer) in kernel_supported_types:
             if (layer.kernel.name in use_tensors) and (
                     layer.bias.name in use_tensors):
                 kernel_var = layer.kernel
                 bias_var = layer.bias
                 layer.kernel = use_tensors[layer.kernel.name]
                 layer.bias = use_tensors[layer.bias.name]
-                layer_out = layer(layer_in)
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
                 layer.kernel = kernel_var
                 layer.bias = bias_var
             else:
-                layer_out = layer(layer_in)
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
+        elif type(layer) in norm_supported_types:
+            if (layer.gamma.name in use_tensors) and (
+                    layer.beta.name in use_tensors):
+                gamma_var = layer.gamma
+                beta_var = layer.beta
+                layer.gamma = use_tensors[layer.gamma.name]
+                layer.beta = use_tensors[layer.beta.name]
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
+                layer.gamma = gamma_var
+                layer.beta = beta_var
+            else:
+                layer_out = self._call_layer(
+                    layer, layer_in, training=training)
         else:
-            layer_out = layer(layer_in)
+            layer_out = self._call_layer(layer, layer_in, training=training)
         return layer_out
 
-    def build_forward_pass(self, input_tensor, use_tensors=None, name=None):
+    def _call_layer(self, layer, layer_in, training=False):
+        layers_with_training_arg = [tf.keras.layers.BatchNormalization]
+        if type(layer) in layers_with_training_arg:
+            return layer(layer_in, training=training)
+        else:
+            return layer(layer_in)
+
+    def build_forward_pass(self,
+                           input_tensor,
+                           use_tensors=None,
+                           training=False,
+                           name=None):
         layer_in = input_tensor
         # Model layers
         with tf.variable_scope(
@@ -74,9 +98,11 @@ class Model:
                 self._name_scope = forward_scope._name_scope
             for layer in self._layers:
                 if use_tensors:
-                    layer_out = self._set_tensors(layer_in, layer, use_tensors)
+                    layer_out = self._set_tensors(layer_in, layer, use_tensors,
+                                                  training)
                 else:
-                    layer_out = layer(layer_in)
+                    layer_out = self._call_layer(
+                        layer, layer_in, training=training)
                 layer_in = layer_out
 
         return layer_out
@@ -96,7 +122,7 @@ class Model:
                 grads.update({name: tf.gradients(loss_sym, w)[0]})
         else:
             for param in tf.get_collection(
-                    tf.GraphKeys.GLOBAL_VARIABLES, scope=self._name_scope):
+                    tf.GraphKeys.TRAINABLE_VARIABLES, scope=self._name_scope):
                 params.update({param.name: param})
                 grads.update({param.name: tf.gradients(loss_sym, param)[0]})
         return grads, params
